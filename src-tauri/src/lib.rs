@@ -3,6 +3,7 @@ use irelia::{Error, RequestClient, rest::LcuClient};
 use irelia::ws::types::{Event, EventKind};
 use irelia::ws::{Flow, LcuWebSocket, Subscriber};
 use serde_json::Value;
+use tauri::{AppHandle, Emitter};
 use tokio::sync::Mutex;
 
 pub struct Data {
@@ -27,9 +28,28 @@ async fn lcu_help(state: TauriState<'_>) -> Result<Value, String> {
 }
 
 #[tauri::command]
-async fn ws_init(state: TauriState<'_>) -> Result<(), String> {
+async fn ws_init(state: TauriState<'_>, app_handle: AppHandle) -> Result<(), String> {
 	let mut data = state.lock().await;
 	let ws_client = &mut data.ws_client;
+
+	struct LobbyEventHandler {
+		app_handle: AppHandle,
+		lobby_members: Vec<String>,
+	}
+	impl Subscriber for LobbyEventHandler {
+		fn on_event(&mut self, event: &Event) -> ControlFlow<(), Flow> {
+			//println!("{:?}", event);
+			if event.2.uri == "/lol-lobby/v2/lobby/members" {
+				self.lobby_members = event.2.data.as_array().unwrap().iter().map(|x| x["summonerName"].as_str().unwrap().to_string()).collect();
+				self.app_handle.emit("lobby", self.lobby_members.clone()).unwrap();
+			}
+			if event.2.event_type == "Delete" {
+				self.lobby_members.clear();
+				self.app_handle.emit("lobby", self.lobby_members.clone()).unwrap();
+			}
+			ControlFlow::Continue(Flow::Continue)
+		}
+	}
 
 	struct EventHandler;
 	impl Subscriber for EventHandler {
@@ -40,8 +60,8 @@ async fn ws_init(state: TauriState<'_>) -> Result<(), String> {
 		}
 	}
 
-	ws_client.subscribe(EventKind::JsonApiEventCallback("/lol-gameflow/v1/gameflow-phase".to_string()), EventHandler).unwrap();
-	ws_client.subscribe(EventKind::JsonApiEventCallback("/lol-lobby/v2/lobby/members".to_string()), EventHandler).unwrap();
+	//ws_client.subscribe(EventKind::JsonApiEventCallback("/lol-gameflow/v1/session".to_string()), EventHandler).unwrap();
+	ws_client.subscribe(EventKind::JsonApiEventCallback("/lol-lobby/v2/lobby".to_string()), LobbyEventHandler { app_handle, lobby_members: Vec::new() }).unwrap();
 
 	Ok(())
 }
