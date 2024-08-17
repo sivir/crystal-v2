@@ -1,42 +1,61 @@
+use std::ops::ControlFlow;
 use irelia::{Error, RequestClient, rest::LcuClient};
+use irelia::ws::types::{Event, EventKind};
+use irelia::ws::{Flow, LcuWebSocket, Subscriber};
 use serde_json::Value;
 use tokio::sync::Mutex;
 
 pub struct Data {
-    pub request_client: RequestClient,
-    pub lcu_client: LcuClient,
+	pub request_client: RequestClient,
+	pub lcu_client: LcuClient,
+	pub ws_client: LcuWebSocket,
 }
 
 type TauriState<'a> = tauri::State<'a, Mutex<Data>>;
 
 #[tauri::command]
 async fn lcu_help(state: TauriState<'_>) -> Result<Value, String> {
-    let data = state.lock().await;
-    let lcu_client = &data.lcu_client;
-    let request_client = &data.request_client;
+	let data = state.lock().await;
+	let lcu_client = &data.lcu_client;
+	let request_client = &data.request_client;
 
-    let json: Result<Option<Value>, Error> = lcu_client.get("/help", request_client).await;
-    match json {
-        Ok(Some(json)) => Ok(json),
-        _ => Ok(Value::Null),
-    }
+	let json: Result<Option<Value>, Error> = lcu_client.get("/help", request_client).await;
+	match json {
+		Ok(Some(json)) => Ok(json),
+		_ => Ok(Value::Null),
+	}
 }
 
-// Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
+async fn ws_init(state: TauriState<'_>) -> Result<(), String> {
+	let mut data = state.lock().await;
+	let ws_client = &mut data.ws_client;
+
+	struct EventHandler;
+	impl Subscriber for EventHandler {
+		fn on_event(&mut self, event: &Event) -> ControlFlow<(), Flow> {
+			println!("{:?}", event);
+
+			ControlFlow::Continue(Flow::Continue)
+		}
+	}
+
+	ws_client.subscribe(EventKind::JsonApiEventCallback("/lol-gameflow/v1/gameflow-phase".to_string()), EventHandler).unwrap();
+	ws_client.subscribe(EventKind::JsonApiEventCallback("/lol-lobby/v2/lobby/members".to_string()), EventHandler).unwrap();
+
+	Ok(())
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default()
-        .manage(Mutex::new(Data {
-            request_client: RequestClient::new(),
-            lcu_client: LcuClient::new(false).unwrap(),
-        }))
-        .plugin(tauri_plugin_shell::init())
-        .invoke_handler(tauri::generate_handler![greet, lcu_help])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+	tauri::Builder::default()
+		.manage(Mutex::new(Data {
+			request_client: RequestClient::new(),
+			lcu_client: LcuClient::new(false).unwrap(),
+			ws_client: LcuWebSocket::new(),
+		}))
+		.plugin(tauri_plugin_shell::init())
+		.invoke_handler(tauri::generate_handler![lcu_help, ws_init])
+		.run(tauri::generate_context!())
+		.expect("error while running tauri application");
 }

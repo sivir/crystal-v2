@@ -37,19 +37,14 @@ function App() {
                 greet();
             }}
         >
-            <input
-                id="greet-input"
-                onChange={(e) => setName(e.currentTarget.value)}
-                placeholder="Enter a name..."
-            />
-            <button type="submit">Greet</button>
-            <button type="button" onClick={() => {
-                invoke("init_irelia").then(() => console.log("opened"));
-            }}>Open LCU
-            </button>
+
             <button type="button" onClick={() => {
                 invoke("lcu_help").then(x => console.log(x));
-            }}>Open LCU
+            }}>LCU Help
+            </button>
+            <button type="button" onClick={() => {
+                invoke("ws_init").then(x => console.log(x));
+            }}>WS init gameflow
             </button>
         </form>
 
