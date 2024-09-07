@@ -1,7 +1,6 @@
-use std::ops::ControlFlow;
 use irelia::{Error, RequestClient, rest::LcuClient};
 use irelia::ws::types::{Event, EventKind};
-use irelia::ws::{Flow, LcuWebSocket, Subscriber};
+use irelia::ws::{LcuWebSocket, Subscriber};
 use serde_json::Value;
 use tauri::{AppHandle, Emitter};
 use tokio::sync::Mutex;
@@ -41,6 +40,32 @@ async fn get_challenge_data(state: TauriState<'_>) -> Result<Value, String> {
 }
 
 #[tauri::command]
+async fn lcu_put_request(state: TauriState<'_>, url: String, body: Value) -> Result<Value, String> {
+	let data = state.lock().await;
+	let lcu_client = &data.lcu_client;
+	let request_client = &data.request_client;
+
+	let json: Result<Value, Error> = lcu_client.put(&url, body, request_client).await;
+	match json {
+		Ok(json) => Ok(json),
+		_ => Ok(Value::Null),
+	}
+}
+
+#[tauri::command]
+async fn lcu_post_request(state: TauriState<'_>, url: String, body: Value) -> Result<Value, String> {
+	let data = state.lock().await;
+	let lcu_client = &data.lcu_client;
+	let request_client = &data.request_client;
+
+	let json: Result<Value, Error> = lcu_client.post(&url, body, request_client).await;
+	match json {
+		Ok(json) => Ok(json),
+		_ => Ok(Value::Null),
+	}
+}
+
+#[tauri::command]
 async fn ws_init(state: TauriState<'_>, app_handle: AppHandle) -> Result<(), String> {
 	let mut data = state.lock().await;
 	let ws_client = &mut data.ws_client;
@@ -51,8 +76,8 @@ async fn ws_init(state: TauriState<'_>, app_handle: AppHandle) -> Result<(), Str
 	}
 
 	impl Subscriber for LobbyEventHandler {
-		fn on_event(&mut self, event: &Event) -> ControlFlow<(), Flow> {
-			//println!("{:?}", event);
+		fn on_event(&mut self, event: &Event, _: &mut bool) {
+			println!("{:?}", event);
 			if event.2.uri == "/lol-lobby/v2/lobby/members" {
 				self.lobby_members = event.2.data.as_array().unwrap().iter().map(|x| x["summonerName"].as_str().unwrap().to_string()).collect();
 				self.app_handle.emit("lobby", self.lobby_members.clone()).unwrap();
@@ -61,16 +86,13 @@ async fn ws_init(state: TauriState<'_>, app_handle: AppHandle) -> Result<(), Str
 				self.lobby_members.clear();
 				self.app_handle.emit("lobby", self.lobby_members.clone()).unwrap();
 			}
-			ControlFlow::Continue(Flow::Continue)
 		}
 	}
 
 	struct EventHandler;
 	impl Subscriber for EventHandler {
-		fn on_event(&mut self, event: &Event) -> ControlFlow<(), Flow> {
+		fn on_event(&mut self, event: &Event, _: &mut bool) {
 			println!("{:?}", event);
-
-			ControlFlow::Continue(Flow::Continue)
 		}
 	}
 
@@ -89,7 +111,7 @@ pub fn run() {
 			ws_client: LcuWebSocket::new(),
 		}))
 		.plugin(tauri_plugin_shell::init())
-		.invoke_handler(tauri::generate_handler![lcu_help, ws_init])
+		.invoke_handler(tauri::generate_handler![lcu_help, ws_init, lcu_put_request, lcu_post_request])
 		.run(tauri::generate_context!())
 		.expect("error while running tauri application");
 }
