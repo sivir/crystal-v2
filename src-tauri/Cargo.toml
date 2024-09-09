@@ -5,6 +5,9 @@ description = "A Tauri App"
 authors = ["you"]
 edition = "2021"
 
+[profile.release]
+debug = true
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [lib]
@@ -19,5 +22,5 @@ tauri = { version = "2.0.0-rc", features = [] }
 tauri-plugin-shell = "2.0.0-rc"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-irelia = "0.8.0"
+irelia = "0.8.1"
 tokio = { version = "1.39.2", features = ["rt", "rt-multi-thread", "macros"] }

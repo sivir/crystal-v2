@@ -67,6 +67,7 @@ async fn lcu_post_request(state: TauriState<'_>, url: String, body: Value) -> Re
 
 #[tauri::command]
 async fn ws_init(state: TauriState<'_>, app_handle: AppHandle) -> Result<(), String> {
+	println!("ws_init");
 	let mut data = state.lock().await;
 	let ws_client = &mut data.ws_client;
 
@@ -77,9 +78,9 @@ async fn ws_init(state: TauriState<'_>, app_handle: AppHandle) -> Result<(), Str
 
 	impl Subscriber for LobbyEventHandler {
 		fn on_event(&mut self, event: &Event, _: &mut bool) {
-			println!("{:?}", event);
 			if event.2.uri == "/lol-lobby/v2/lobby/members" {
 				self.lobby_members = event.2.data.as_array().unwrap().iter().map(|x| x["summonerName"].as_str().unwrap().to_string()).collect();
+				println!("{:?}", event.2.data);
 				self.app_handle.emit("lobby", self.lobby_members.clone()).unwrap();
 			}
 			if event.2.event_type == "Delete" {

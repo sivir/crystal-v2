@@ -1510,9 +1510,9 @@ checksum = "8f518f335dce6725a761382244631d86cf0ccb2863413590b31338feb467f9c3"
 
 [[package]]
 name = "irelia"
-version = "0.8.0"
+version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b3972d67a464330c64646fe0cc20204cb06bc15885e711440104c39c33ff1f2c"
+checksum = "400864c5fe25d8ce5663d25411d178841c2782192517449f8e218a6bedcf47ef"
 dependencies = [
  "hashlink",
  "http-body-util",
