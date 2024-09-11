@@ -1,18 +1,236 @@
-import {invoke} from "@tauri-apps/api/core";
+import { useState } from 'react'
+import { ChevronRight, CreditCard, Wallet, Banknote, PiggyBank, Coins, Receipt, ShoppingCart, Briefcase, TrendingUp, Gift, Percent, Tag } from "lucide-react"
+
 import { Button } from "@/components/ui/button"
+import {
+	Card,
+	CardContent,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card"
+import { Progress } from "@/components/ui/progress"
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "@/components/ui/dialog"
 
-export default function Dashboard({ lobby }: { lobby: string }) {
-	return <>
-		<Button onClick={() => invoke("lcu_help").then(x => console.log(x))}>LCU Help</Button>
+const iconOptions = [
+	{ icon: CreditCard, label: 'Credit Card' },
+	{ icon: Wallet, label: 'Wallet' },
+	{ icon: Banknote, label: 'Banknote' },
+	{ icon: PiggyBank, label: 'Savings' },
+	{ icon: Coins, label: 'Coins' },
+	{ icon: Receipt, label: 'Receipt' },
+	{ icon: ShoppingCart, label: 'Shopping' },
+	{ icon: Briefcase, label: 'Business' },
+	{ icon: TrendingUp, label: 'Trending' },
+	{ icon: Gift, label: 'Gift' },
+	{ icon: Percent, label: 'Discount' },
+	{ icon: Tag, label: 'Tag' },
+]
 
-		<Button onClick={() => {
-			invoke("ws_init").then(x => console.log(x));
-		}}>
-			WS init
-		</Button>
-		<Button onClick={() => {
-			invoke("lcu_post_request", {url: "/lol-challenges/v1/update-player-preferences", body: {"challengeIds": [301103,301103,301103]}}).then(x => console.log(x));
-		}}>set buttons</Button>
-		lobby: {lobby}
-	</>
+const CircleProgress = ({ progress }: { progress: number }) => (
+	<div className="relative w-32 h-32">
+		<svg className="w-32 h-32" viewBox="0 0 100 100">
+			<circle
+				className="text-muted stroke-current"
+				strokeWidth="8"
+				cx="50"
+				cy="50"
+				r="40"
+				fill="transparent"
+			></circle>
+			<circle
+				className="text-primary stroke-current"
+				strokeWidth="8"
+				strokeLinecap="round"
+				cx="50"
+				cy="50"
+				r="40"
+				fill="transparent"
+				strokeDasharray={`${2 * Math.PI * 40}`}
+				strokeDashoffset={`${2 * Math.PI * 40 * (1 - progress / 100)}`}
+				transform="rotate(-90 50 50)"
+			></circle>
+		</svg>
+		<div className="absolute inset-0 flex items-center justify-center">
+			<img
+				src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/challenges-shared/crystal_challenger.png"
+				alt="Progress icon"
+				width={80}
+				height={80}
+				className="rounded-full"
+			/>
+		</div>
+	</div>
+)
+
+export default function Dashboard() {
+	const [selectedIcons, setSelectedIcons] = useState([
+		iconOptions[0],
+		iconOptions[1],
+		iconOptions[2]
+	])
+	const [openDialogIndex, setOpenDialogIndex] = useState<number | null>(null)
+
+	const handleIconChange = (index: number, newIcon: typeof iconOptions[0]) => {
+		const newSelectedIcons = [...selectedIcons]
+		newSelectedIcons[index] = newIcon
+		setSelectedIcons(newSelectedIcons)
+		setOpenDialogIndex(null)
+	}
+
+	return (
+		<div className="flex flex-col">
+			<main className="flex-1 p-6 md:p-10">
+				<h2 className="text-2xl font-semibold mb-6 -mt-8">Hello, name#tag</h2>
+				<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
+					<Card className="flex flex-col">
+						<CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+							<CardTitle className="flex items-center justify-between">
+								Challenge Overview <ChevronRight className="h-4 w-4 text-muted-foreground"/>
+							</CardTitle>
+						</CardHeader>
+						<CardContent className="flex-1">
+							<div className="flex items-center justify-between">
+								<div className="flex flex-col items-start space-y-4">
+									<div className="text-3xl font-bold">25305</div>
+									<div className="flex space-x-4">
+										{selectedIcons.map((IconObj, index) => (
+											<Dialog key={index} open={openDialogIndex === index} onOpenChange={(open: any) => setOpenDialogIndex(open ? index : null)}>
+												<DialogTrigger asChild>
+													<Button variant="outline" size="icon" className="h-16 w-16">
+														<IconObj.icon className="h-8 w-8"/>
+													</Button>
+												</DialogTrigger>
+												<DialogContent className="sm:max-w-[425px]">
+													<DialogHeader>
+														<DialogTitle>Choose an icon</DialogTitle>
+														<DialogDescription>
+															Select a new icon to represent this category.
+														</DialogDescription>
+													</DialogHeader>
+													<div className="grid grid-cols-4 gap-4 py-4">
+														{iconOptions.map((option, optionIndex) => (
+															<Button
+																key={optionIndex}
+																variant="outline"
+																className="h-12 w-12 p-0"
+																onClick={() => handleIconChange(index, option)}
+															>
+																<option.icon className="h-6 w-6"/>
+															</Button>
+														))}
+													</div>
+												</DialogContent>
+											</Dialog>
+										))}
+									</div>
+								</div>
+								<CircleProgress progress={75}/>
+							</div>
+						</CardContent>
+					</Card>
+					<Card className="flex flex-col">
+						<CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+							<CardTitle className="flex items-center justify-between">
+								2024 Split 2 Seasonal <ChevronRight className="h-4 w-4 text-muted-foreground"/>
+							</CardTitle>
+						</CardHeader>
+						<CardContent className="flex-1">
+							<div className="space-y-4">
+								<div>
+									<div className="flex justify-between mb-2">
+										<span className="text-sm font-medium">Overall Progress</span>
+										<span className="text-sm font-medium">82%</span>
+									</div>
+									<Progress value={82} className="h-2"/>
+								</div>
+								<div>
+									<h4 className="text-sm font-medium mb-2">Challenges</h4>
+									<div className="grid grid-cols-4 gap-4">
+										<div className="flex flex-col items-center">
+											<img src="https://raw.communitydragon.org/latest/game/assets/challenges/config/2024201/tokens/diamond.png" height={64} width={64} alt="Challenger"/>
+										</div>
+										<div className="flex flex-col items-center">
+											<img src="https://raw.communitydragon.org/latest/game/assets/challenges/config/2024202/tokens/diamond.png" height={64} width={64} alt="Challenger"/>
+										</div>
+										<div className="flex flex-col items-center">
+											<img src="https://raw.communitydragon.org/latest/game/assets/challenges/config/2024203/tokens/master.png" height={64} width={64} alt="Challenger"/>
+										</div>
+										<div className="flex flex-col items-center">
+											<img src="https://raw.communitydragon.org/latest/game/assets/challenges/config/2024204/tokens/master.png" height={64} width={64} alt="Challenger"/>
+										</div>
+									</div>
+								</div>
+							</div>
+						</CardContent>
+					</Card>
+					<Card className="flex flex-col">
+						<CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+							<CardTitle className="flex items-center justify-between">
+								Eternals or Globes <ChevronRight className="h-4 w-4 text-muted-foreground"/>
+							</CardTitle>
+						</CardHeader>
+						<CardContent className="flex-1">
+							<div className="space-y-4">
+								{[1, 2, 3].map((item) => (
+									<div key={item} className="flex items-center">
+										<div className="w-9 h-9 rounded-full bg-muted mr-4"/>
+										<div className="flex-1 space-y-1">
+											<p className="text-sm font-medium leading-none">Order #{item}00</p>
+											<p className="text-sm text-muted-foreground">2 hours ago</p>
+										</div>
+										<div className="font-medium">$25.00</div>
+									</div>
+								))}
+							</div>
+						</CardContent>
+					</Card>
+					<Card className="flex flex-col">
+						<CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+							<CardTitle className="flex items-center justify-between">
+								Mastery <ChevronRight className="h-4 w-4 text-muted-foreground"/>
+							</CardTitle>
+						</CardHeader>
+						<CardContent className="flex-1">
+							<div className="space-y-4">
+								<div className="space-y-2">
+									<div className="flex items-center justify-between">
+										<p className="text-sm font-medium leading-none">Mastery 10</p>
+										<p className="text-sm font-medium">38/100</p>
+									</div>
+									<div className="h-2 bg-muted rounded-full overflow-hidden">
+										<div className="h-full bg-primary w-[38%]"/>
+									</div>
+								</div>
+								<div className="space-y-2">
+									<div className="flex items-center justify-between">
+										<p className="text-sm font-medium leading-none">Mastery 7</p>
+										<p className="text-sm font-medium">42/100</p>
+									</div>
+									<div className="h-2 bg-muted rounded-full overflow-hidden">
+										<div className="h-full bg-primary w-[42%]"/>
+									</div>
+								</div>
+								<div className="space-y-2">
+									<div className="flex items-center justify-between">
+										<p className="text-sm font-medium leading-none">Mastery 5</p>
+										<p className="text-sm font-medium">90/150</p>
+									</div>
+									<div className="h-2 bg-muted rounded-full overflow-hidden">
+										<div className="h-full bg-primary w-[65%]"/>
+									</div>
+								</div>
+							</div>
+						</CardContent>
+					</Card>
+				</div>
+			</main>
+		</div>
+	)
 }

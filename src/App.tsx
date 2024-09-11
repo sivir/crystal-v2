@@ -1,115 +1,16 @@
 import "./App.css";
-import {useEffect, useState} from "react";
-import {getCurrentWindow} from "@tauri-apps/api/window";
-import {listen} from "@tauri-apps/api/event";
-import Dashboard from "./Dashboard.tsx";
+import { useEffect, useState } from "react";
+import { getCurrentWindow } from "@tauri-apps/api/window";
+import { listen } from "@tauri-apps/api/event";
+import { Button } from "@/components/ui/button"
+import { HomeIcon, SettingsIcon, UserIcon, HelpCircleIcon, X, Square, Minus } from "lucide-react"
+
+import Debug from "@/Debug.tsx";
+import Dashboard from "@/Dashboard.tsx";
 
 "use client";
 
 const current_window = getCurrentWindow();
-
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { HomeIcon, SettingsIcon, UserIcon, HelpCircleIcon, X, Square, Minus } from "lucide-react"
-import { BarChart, DollarSign, List, User } from "lucide-react"
-
-const Home = () => {
-	return (
-		<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
-			<Card className="flex flex-col">
-				<CardHeader>
-					<CardTitle className="flex items-center justify-between">
-						<span>Revenue Overview</span>
-						<DollarSign className="h-4 w-4 text-muted-foreground"/>
-					</CardTitle>
-				</CardHeader>
-				<CardContent className="flex-1">
-					<div className="text-2xl font-bold">$45,231.89</div>
-					<p className="text-xs text-muted-foreground">+20.1% from last month</p>
-					<div className="mt-4 h-[200px] w-full bg-muted rounded-md flex items-center justify-center">
-						<BarChart className="h-8 w-8 text-muted-foreground"/>
-					</div>
-				</CardContent>
-			</Card>
-			<Card className="flex flex-col">
-				<CardHeader>
-					<CardTitle className="flex items-center justify-between">
-						<span>User Activity</span>
-						<User className="h-4 w-4 text-muted-foreground"/>
-					</CardTitle>
-				</CardHeader>
-				<CardContent className="flex-1">
-					<div className="text-2xl font-bold">1,234</div>
-					<p className="text-xs text-muted-foreground">Active users in the last 24 hours</p>
-					<div className="mt-4 h-[200px] w-full bg-muted rounded-md flex items-center justify-center">
-						<BarChart className="h-8 w-8 text-muted-foreground"/>
-					</div>
-				</CardContent>
-			</Card>
-			<Card className="flex flex-col">
-				<CardHeader>
-					<CardTitle className="flex items-center justify-between">
-						<span>Recent Orders</span>
-						<List className="h-4 w-4 text-muted-foreground"/>
-					</CardTitle>
-				</CardHeader>
-				<CardContent className="flex-1">
-					<div className="space-y-4">
-						{[1, 2, 3].map((item) => (
-							<div key={item} className="flex items-center">
-								<div className="w-9 h-9 rounded-full bg-muted mr-4"/>
-								<div className="flex-1 space-y-1">
-									<p className="text-sm font-medium leading-none">Order #{item}00</p>
-									<p className="text-sm text-muted-foreground">2 hours ago</p>
-								</div>
-								<div className="font-medium">$25.00</div>
-							</div>
-						))}
-					</div>
-				</CardContent>
-			</Card>
-			<Card className="flex flex-col">
-				<CardHeader>
-					<CardTitle className="flex items-center justify-between">
-						<span>Performance Metrics</span>
-						<BarChart className="h-4 w-4 text-muted-foreground"/>
-					</CardTitle>
-				</CardHeader>
-				<CardContent className="flex-1">
-					<div className="space-y-4">
-						<div className="space-y-2">
-							<div className="flex items-center justify-between">
-								<p className="text-sm font-medium leading-none">Conversion Rate</p>
-								<p className="text-sm font-medium">3.8%</p>
-							</div>
-							<div className="h-2 bg-muted rounded-full overflow-hidden">
-								<div className="h-full bg-primary w-[38%]"/>
-							</div>
-						</div>
-						<div className="space-y-2">
-							<div className="flex items-center justify-between">
-								<p className="text-sm font-medium leading-none">Bounce Rate</p>
-								<p className="text-sm font-medium">42%</p>
-							</div>
-							<div className="h-2 bg-muted rounded-full overflow-hidden">
-								<div className="h-full bg-primary w-[42%]"/>
-							</div>
-						</div>
-						<div className="space-y-2">
-							<div className="flex items-center justify-between">
-								<p className="text-sm font-medium leading-none">Avg. Session Duration</p>
-								<p className="text-sm font-medium">2m 15s</p>
-							</div>
-							<div className="h-2 bg-muted rounded-full overflow-hidden">
-								<div className="h-full bg-primary w-[65%]"/>
-							</div>
-						</div>
-					</div>
-				</CardContent>
-			</Card>
-		</div>
-	)
-}
 
 const Profile = () => {
 	const [name, setName] = useState('')
@@ -150,7 +51,6 @@ const Settings = () => {
 
 export default function Layout() {
 	const [activeContent, setActiveContent] = useState('home');
-
 	const [lobby, setLobby] = useState("");
 
 	useEffect(() => {
@@ -164,10 +64,10 @@ export default function Layout() {
 	}, []);
 
 	const navItems = [
-		{icon: HomeIcon, text: 'Home', id: 'home'},
-		{icon: UserIcon, text: 'Profile', id: 'profile'},
-		{icon: SettingsIcon, text: 'Settings', id: 'settings'},
-		{icon: HelpCircleIcon, text: 'Debug', id: 'help'},
+		{ icon: HomeIcon, text: 'Home', id: 'home' },
+		{ icon: UserIcon, text: 'Profile', id: 'profile' },
+		{ icon: SettingsIcon, text: 'Settings', id: 'settings' },
+		{ icon: HelpCircleIcon, text: 'Debug', id: 'help' },
 	];
 
 	return (
@@ -205,9 +105,9 @@ export default function Layout() {
 				<div className="h-full px-3 py-4 overflow-y-auto bg-gray-50 dark:bg-gray-800">
 					<div className="flex items-center pl-2.5 mb-5">
 						<img
-							src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/challenge-mini-crystal/grandmaster.svg"
-							width="32" height="32" className="h-8 mr-3" alt="Logo"/>
-						<span className="self-center text-xl font-semibold whitespace-nowrap dark:text-white">Your Logo</span>
+							src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/challenges-shared/challenge-intro-modal-diamond.png"
+							width="32" className="mr-3" alt="Logo"/>
+						<span className="self-center text-xl font-semibold whitespace-nowrap dark:text-white">crystal</span>
 					</div>
 					<ul className="space-y-2 font-medium">
 						{navItems.map((item) => (
@@ -227,12 +127,12 @@ export default function Layout() {
 			</aside>
 
 			<div className="flex-1 ml-64 flex flex-col h-screen">
-				<div className="h-16 flex flex-col justify-between px-4" data-tauri-drag-region="true" />
+				<div className="h-16 flex flex-col justify-between px-4" data-tauri-drag-region="true"/>
 				<main className="flex-1 overflow-y-auto p-4">
-					{activeContent === 'home' && <Home/>}
+					{activeContent === 'home' && <Dashboard/>}
 					{activeContent === 'profile' && <Profile/>}
 					{activeContent === 'settings' && <Settings/>}
-					{activeContent === 'help' && <Dashboard lobby={lobby}/>}
+					{activeContent === 'help' && <Debug lobby={lobby}/>}
 				</main>
 			</div>
 		</div>
