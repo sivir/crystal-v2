@@ -4,16 +4,27 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { listen } from "@tauri-apps/api/event";
 import { Button } from "@/components/ui/button"
 import { HomeIcon, SettingsIcon, UserIcon, HelpCircleIcon, X, Square, Minus } from "lucide-react"
+import { createClient } from "@supabase/supabase-js";
 
-import Debug from "@/Debug.tsx";
-import Dashboard from "@/Dashboard.tsx";
+import Debug from "@/debug.tsx";
+import Dashboard from "@/dashboard.tsx";
+import Champions from "@/champions.tsx";
 
 "use client";
 
 const current_window = getCurrentWindow();
+const supabase = createClient("https://jvnhtmgsncslprdrnkth.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2bmh0bWdzbmNzbHByZHJua3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTQ2Mjc4ODMsImV4cCI6MjAxMDIwMzg4M30.OOjwsPjGHEc-x8MlhrOX64tJTNENqKqEq2635HKErrk");
 
 const Profile = () => {
-	const [name, setName] = useState('')
+	const [name, setName] = useState('');
+
+	useEffect(() => {
+		console.log("Profile mounted");
+		supabase.functions.invoke("get-user", {body: {riot_id: "cyan#pink"}}).then(({ data }) => {
+			console.log(data);
+		});
+	}, []);
+
 	return (
 		<div className="p-4">
 			<h1 className="text-2xl font-bold">Profile</h1>
@@ -30,25 +41,6 @@ const Profile = () => {
 	)
 }
 
-const Settings = () => {
-	const [theme, setTheme] = useState('light')
-	return (
-		<div className="p-4">
-			<h1 className="text-2xl font-bold">Settings</h1>
-			<p>Adjust your settings here.</p>
-			<select
-				value={theme}
-				onChange={(e) => setTheme(e.target.value)}
-				className="border p-2 mt-2"
-			>
-				<option value="light">Light</option>
-				<option value="dark">Dark</option>
-			</select>
-			<p>Current theme: {theme}</p>
-		</div>
-	)
-}
-
 export default function Layout() {
 	const [activeContent, setActiveContent] = useState('home');
 	const [lobby, setLobby] = useState("");
@@ -58,6 +50,9 @@ export default function Layout() {
 			setLobby(JSON.stringify(event.payload));
 			console.log(event);
 		});
+
+
+
 		return () => {
 			unlisten.then(f => f());
 		}
@@ -131,7 +126,7 @@ export default function Layout() {
 				<main className="flex-1 overflow-y-auto p-4">
 					{activeContent === 'home' && <Dashboard/>}
 					{activeContent === 'profile' && <Profile/>}
-					{activeContent === 'settings' && <Settings/>}
+					{activeContent === 'settings' && <Champions />}
 					{activeContent === 'help' && <Debug lobby={lobby}/>}
 				</main>
 			</div>

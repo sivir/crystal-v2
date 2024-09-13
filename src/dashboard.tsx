@@ -57,9 +57,9 @@ const CircleProgress = ({ progress }: { progress: number }) => (
 				transform="rotate(-90 50 50)"
 			></circle>
 		</svg>
-		<div className="absolute inset-0 flex items-center justify-center">
+		<div className="absolute inset-0 flex items-center justify-center mt-1">
 			<img
-				src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/challenges-shared/crystal_challenger.png"
+				src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/challenges-shared/crystal_diamond.png"
 				alt="Progress icon"
 				width={80}
 				height={80}
@@ -87,7 +87,7 @@ export default function Dashboard() {
 	return (
 		<div className="flex flex-col">
 			<main className="flex-1 p-6 md:p-10">
-				<h2 className="text-2xl font-semibold mb-6 -mt-8">Hello, name#tag</h2>
+				<h2 className="text-2xl font-semibold mb-6 -mt-10">Hello, name#tag</h2>
 				<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
 					<Card className="flex flex-col">
 						<CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
@@ -98,9 +98,13 @@ export default function Dashboard() {
 						<CardContent className="flex-1">
 							<div className="flex items-center justify-between">
 								<div className="flex flex-col items-start space-y-4">
-									<div className="text-3xl font-bold">25305</div>
+									<div className="flex items-center">
+										<img className="h-8 w-8 mr-2" src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/challenge-mini-crystal/diamond.svg" alt="icon"/>
+										<div className="text-3xl font-bold">25305</div>
+										<div className="text-3xl ml-1">pts</div>
+									</div>
 									<div className="flex space-x-4">
-										{selectedIcons.map((IconObj, index) => (
+									{selectedIcons.map((IconObj, index) => (
 											<Dialog key={index} open={openDialogIndex === index} onOpenChange={(open: any) => setOpenDialogIndex(open ? index : null)}>
 												<DialogTrigger asChild>
 													<Button variant="outline" size="icon" className="h-16 w-16">
