@@ -40,6 +40,19 @@ async fn get_challenge_data(state: TauriState<'_>) -> Result<Value, String> {
 }
 
 #[tauri::command]
+async fn lcu_get_request(state: TauriState<'_>, url: String) -> Result<Value, String> {
+	let data = state.lock().await;
+	let lcu_client = &data.lcu_client;
+	let request_client = &data.request_client;
+
+	let json: Result<Value, Error> = lcu_client.get(&url, request_client).await;
+	match json {
+		Ok(json) => Ok(json),
+		_ => Ok(Value::Null),
+	}
+}
+
+#[tauri::command]
 async fn lcu_put_request(state: TauriState<'_>, url: String, body: Value) -> Result<Value, String> {
 	let data = state.lock().await;
 	let lcu_client = &data.lcu_client;
@@ -112,7 +125,7 @@ pub fn run() {
 			ws_client: LcuWebSocket::new(),
 		}))
 		.plugin(tauri_plugin_shell::init())
-		.invoke_handler(tauri::generate_handler![lcu_help, ws_init, lcu_put_request, lcu_post_request])
+		.invoke_handler(tauri::generate_handler![lcu_help, ws_init, lcu_get_request, lcu_put_request, lcu_post_request])
 		.run(tauri::generate_context!())
 		.expect("error while running tauri application");
 }

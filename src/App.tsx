@@ -2,13 +2,15 @@ import "./App.css";
 import { useEffect, useState } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { listen } from "@tauri-apps/api/event";
-import { Button } from "@/components/ui/button"
-import { HomeIcon, SettingsIcon, UserIcon, HelpCircleIcon, X, Square, Minus } from "lucide-react"
+import { Button } from "@/components/ui/button";
+import { HomeIcon, SettingsIcon, UserIcon, HelpCircleIcon, X, Square, Minus } from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
 
 import Debug from "@/debug.tsx";
 import Dashboard from "@/dashboard.tsx";
 import Champions from "@/champions.tsx";
+import { invoke } from "@tauri-apps/api/core";
+import { default_riot_challenge_data, LCUChallengeData, MasteryData, RiotChallengeData, SummonerData } from "@/lib/types.ts";
 
 "use client";
 
@@ -17,13 +19,6 @@ const supabase = createClient("https://jvnhtmgsncslprdrnkth.supabase.co", "eyJhb
 
 const Profile = () => {
 	const [name, setName] = useState('');
-
-	useEffect(() => {
-		console.log("Profile mounted");
-		supabase.functions.invoke("get-user", {body: {riot_id: "cyan#pink"}}).then(({ data }) => {
-			console.log(data);
-		});
-	}, []);
 
 	return (
 		<div className="p-4">
@@ -38,12 +33,16 @@ const Profile = () => {
 			/>
 			<p>Hello, {name}!</p>
 		</div>
-	)
-}
+	);
+};
 
 export default function Layout() {
 	const [activeContent, setActiveContent] = useState('home');
 	const [lobby, setLobby] = useState("");
+	const [lcu_challenge_data, setLCUChallengeData] = useState<LCUChallengeData>({});
+	const [riot_challenge_data, setRiotChallengeData] = useState<RiotChallengeData>(default_riot_challenge_data);
+	const [mastery_data, setMasteryData] = useState<MasteryData>();
+	const [riot_id, setRiotId] = useState<string[]>([]);
 
 	useEffect(() => {
 		const unlisten = listen("lobby", (event) => {
@@ -51,18 +50,32 @@ export default function Layout() {
 			console.log(event);
 		});
 
+		invoke("lcu_get_request", { url: "/lol-challenges/v1/challenges/local-player" }).then(x => {
+			console.log("lcu_challenge_data", x);
+			setLCUChallengeData(x as LCUChallengeData);
+		});
 
+		invoke("lcu_get_request", { url: "/lol-summoner/v1/current-summoner" }).then(x => {
+			const summoner_data = x as SummonerData;
+			setRiotId([summoner_data.gameName, summoner_data.tagLine]);
+			supabase.functions.invoke("get-user", { body: { riot_id: `${summoner_data.gameName}#${summoner_data.tagLine}` } }).then(({ data }) => {
+				const data1 = JSON.parse(data);
+				console.log(data1.riot_data);
+				setRiotChallengeData(data1.riot_data);
+				setMasteryData(data1.mastery_data);
+			});
+		});
 
 		return () => {
 			unlisten.then(f => f());
-		}
+		};
 	}, []);
 
 	const navItems = [
 		{ icon: HomeIcon, text: 'Home', id: 'home' },
 		{ icon: UserIcon, text: 'Profile', id: 'profile' },
 		{ icon: SettingsIcon, text: 'Settings', id: 'settings' },
-		{ icon: HelpCircleIcon, text: 'Debug', id: 'help' },
+		{ icon: HelpCircleIcon, text: 'Debug', id: 'help' }
 	];
 
 	return (
@@ -74,7 +87,7 @@ export default function Layout() {
 					className="w-3 h-3 bg-yellow-400 rounded-full hover:bg-yellow-500 focus:outline-none"
 					onClick={() => current_window.minimize()}
 				>
-					<Minus className="h-2 w-2 text-yellow-800"/>
+					<Minus className="h-2 w-2 text-yellow-800" />
 					<span className="sr-only">Minimize</span>
 				</Button>
 				<Button
@@ -83,7 +96,7 @@ export default function Layout() {
 					className="w-3 h-3 bg-green-400 rounded-full hover:bg-green-500 focus:outline-none"
 					onClick={() => current_window.toggleMaximize()}
 				>
-					<Square className="h-2 w-2 text-green-800"/>
+					<Square className="h-2 w-2 text-green-800" />
 					<span className="sr-only">Maximize</span>
 				</Button>
 				<Button
@@ -92,7 +105,7 @@ export default function Layout() {
 					className="w-3 h-3 bg-red-400 rounded-full hover:bg-red-500 focus:outline-none"
 					onClick={() => current_window.close()}
 				>
-					<X className="h-2 w-2 text-red-800"/>
+					<X className="h-2 w-2 text-red-800" />
 					<span className="sr-only">Close</span>
 				</Button>
 			</div>
@@ -101,7 +114,7 @@ export default function Layout() {
 					<div className="flex items-center pl-2.5 mb-5">
 						<img
 							src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/challenges-shared/challenge-intro-modal-diamond.png"
-							width="32" className="mr-3" alt="Logo"/>
+							width="32" className="mr-3" alt="Logo" />
 						<span className="self-center text-xl font-semibold whitespace-nowrap dark:text-white">crystal</span>
 					</div>
 					<ul className="space-y-2 font-medium">
@@ -112,7 +125,7 @@ export default function Layout() {
 									className={`w-full justify-start ${activeContent === item.id ? 'bg-gray-200 dark:bg-gray-700' : ''}`}
 									onClick={() => setActiveContent(item.id)}
 								>
-									<item.icon className="w-5 h-5 mr-3"/>
+									<item.icon className="w-5 h-5 mr-3" />
 									{item.text}
 								</Button>
 							</li>
@@ -122,12 +135,12 @@ export default function Layout() {
 			</aside>
 
 			<div className="flex-1 ml-64 flex flex-col h-screen">
-				<div className="h-16 flex flex-col justify-between px-4" data-tauri-drag-region="true"/>
+				<div className="h-16 flex flex-col justify-between px-4" data-tauri-drag-region="true" />
 				<main className="flex-1 overflow-y-auto p-4">
-					{activeContent === 'home' && <Dashboard/>}
-					{activeContent === 'profile' && <Profile/>}
+					{activeContent === 'home' && <Dashboard riot_id={riot_id} lcu_challenge_data={lcu_challenge_data} riot_challenge_data={riot_challenge_data}/>}
+					{activeContent === 'profile' && <Profile />}
 					{activeContent === 'settings' && <Champions />}
-					{activeContent === 'help' && <Debug lobby={lobby}/>}
+					{activeContent === 'help' && <Debug lobby={lobby} />}
 				</main>
 			</div>
 		</div>

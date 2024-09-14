@@ -11,10 +11,12 @@
   },
   "trustedDependencies": ["supabase"],
   "dependencies": {
+    "@radix-ui/react-checkbox": "^1.1.1",
     "@radix-ui/react-dialog": "^1.1.1",
     "@radix-ui/react-progress": "^1.1.0",
     "@radix-ui/react-slot": "^1.1.0",
     "@supabase/supabase-js": "^2.45.4",
+    "@tanstack/react-table": "^8.20.5",
     "@tauri-apps/api": ">=2.0.0-rc.0",
     "@tauri-apps/plugin-shell": ">=2.0.0-rc.0",
     "class-variance-authority": "^0.7.0",
