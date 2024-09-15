@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { listen } from "@tauri-apps/api/event";
 import { Button } from "@/components/ui/button";
-import { HomeIcon, UserIcon, Bug, X, Square, Minus, Users, Globe } from "lucide-react";
+import { HomeIcon, UserIcon, Bug, X, Square, Minus, Users, Globe, FlaskConical } from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
 
 import Debug from "@/debug.tsx";
@@ -20,7 +20,7 @@ const current_window = getCurrentWindow();
 const supabase = createClient("https://jvnhtmgsncslprdrnkth.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2bmh0bWdzbmNzbHByZHJua3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTQ2Mjc4ODMsImV4cCI6MjAxMDIwMzg4M30.OOjwsPjGHEc-x8MlhrOX64tJTNENqKqEq2635HKErrk");
 
 export default function Layout() {
-	const [activeContent, setActiveContent] = useState('home');
+	const [page, setPage] = useState('home');
 	const [lobby, setLobby] = useState("");
 	const [lcu_challenge_data, setLCUChallengeData] = useState<LCUChallengeData>({});
 	const [riot_challenge_data, setRiotChallengeData] = useState<RiotChallengeData>(default_riot_challenge_data);
@@ -61,7 +61,7 @@ export default function Layout() {
 
 	const navItems = [
 		{ icon: HomeIcon, text: 'Home', id: 'home' },
-		{ icon: UserIcon, text: 'Profile', id: 'profile' },
+		{ icon: FlaskConical, text: 'Testing', id: 'test' },
 		{ icon: Users, text: 'Champions', id: 'champions' },
 		{ icon: Globe, text: 'Team Builder', id: 'globes' },
 		{ icon: Bug, text: 'Debug', id: 'help' }
@@ -111,8 +111,8 @@ export default function Layout() {
 							<li key={item.id}>
 								<Button
 									variant="ghost"
-									className={`w-full justify-start ${activeContent === item.id ? 'bg-gray-200 dark:bg-gray-700' : ''}`}
-									onClick={() => setActiveContent(item.id)}
+									className={`w-full justify-start ${page === item.id ? 'bg-gray-200 dark:bg-gray-700' : ''}`}
+									onClick={() => setPage(item.id)}
 								>
 									<item.icon className="w-5 h-5 mr-3" />
 									{item.text}
@@ -126,11 +126,11 @@ export default function Layout() {
 			<div className="flex-1 ml-64 flex flex-col h-screen">
 				<div className="h-16 flex flex-col justify-between px-4" data-tauri-drag-region="true" />
 				<main className="flex-1 overflow-y-auto p-4">
-					{activeContent === 'home' && <Dashboard riot_id={riot_id} lcu_challenge_data={lcu_challenge_data} riot_challenge_data={riot_challenge_data}/>}
-					{activeContent === 'profile' && <Testing />}
-					{activeContent === 'champions' && <Champions mastery_data={mastery_data} champion_map={champion_map}/>}
-					{activeContent === 'globes' && <TeamBuilder champion_map={champion_map} lcu_challenge_data={lcu_challenge_data} />}
-					{activeContent === 'help' && <Debug lobby={lobby} />}
+					{page === 'home' && <Dashboard riot_id={riot_id} lcu_challenge_data={lcu_challenge_data} riot_challenge_data={riot_challenge_data} setPage={setPage}/>}
+					{page === 'test' && <Testing />}
+					{page === 'champions' && <Champions mastery_data={mastery_data} champion_map={champion_map}/>}
+					{page === 'globes' && <TeamBuilder champion_map={champion_map} lcu_challenge_data={lcu_challenge_data} />}
+					{page === 'help' && <Debug lobby={lobby} />}
 				</main>
 			</div>
 		</div>

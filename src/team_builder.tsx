@@ -1,19 +1,21 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { ChampionSummaryItem, LCUChallengeData } from "@/lib/types.ts";
 import { Textarea } from "@/components/ui/textarea.tsx";
 import { Button } from "@/components/ui/button.tsx";
-import { Copy } from "lucide-react";
+import { Copy, Filter } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select.tsx";
 
 function is_globe_or_harmony(challenge: any) {
-	return challenge.capstoneGroupName === "Globetrotter" || challenge.capstoneGroupName === "Harmony" && challenge.isCapstone === false;
+	return (challenge.capstoneGroupName === "Globetrotter" || challenge.capstoneGroupName === "Harmony") && challenge.isCapstone == false;
 }
 
 export default function TeamBuilder({ champion_map, lcu_challenge_data }: { champion_map: { [_: number]: ChampionSummaryItem }, lcu_challenge_data: LCUChallengeData }) {
 	const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 	const [champions, setChampions] = useState<any[]>([]);
 	const [filters, setFilters] = useState<any[]>([]);
+	const [shapeSubCategory, setShapeSubCategory] = useState('assassin');
 	const text_area_ref = useRef<HTMLTextAreaElement>(null);
 
 	const copy_champs_to_clipboard = () => {
@@ -37,7 +39,8 @@ export default function TeamBuilder({ champion_map, lcu_challenge_data }: { cham
 		setFilters(Object.entries(lcu_challenge_data).filter(([_, value]) => is_globe_or_harmony(value)).map(([key, value]) => ({
 			id: key,
 			label: value.name,
-			group: value.capstoneGroupName
+			group: value.capstoneGroupName,
+			subCategories: key === "303408" ? ["assassin", "mage", "marksman", "tank", "support", "fighter"] : []
 		})));
 	}, [lcu_challenge_data]);
 
@@ -51,7 +54,7 @@ export default function TeamBuilder({ champion_map, lcu_challenge_data }: { cham
 
 	const isIconVisible = (iconCategories: string[]) => {
 		if (selectedCategories.length === 0) return true;
-		return selectedCategories.every(category => iconCategories.includes(category));
+		return selectedCategories.every(category => iconCategories.includes(category) || category === "303408" && iconCategories.includes("role:" + shapeSubCategory));
 	};
 
 	const sortedIcons = useMemo(() => {
@@ -62,7 +65,7 @@ export default function TeamBuilder({ champion_map, lcu_challenge_data }: { cham
 			if (!aVisible && bVisible) return 1;
 			return 0;
 		});
-	}, [champions, selectedCategories]);
+	}, [champions, selectedCategories, shapeSubCategory]);
 
 	return (
 		<div className="flex p-6 gap-6">
@@ -81,6 +84,23 @@ export default function TeamBuilder({ champion_map, lcu_challenge_data }: { cham
 											onCheckedChange={() => handleCategoryChange(category.id)}
 										/>
 										<Label htmlFor={category.id}>{category.label}</Label>
+										<div className="text-right flex items-center space-x-2">
+											{category.subCategories.length > 0 ? (
+												<Select value={shapeSubCategory} onValueChange={setShapeSubCategory}>
+													<SelectTrigger className="h-7 text-xs px-2 py-0">
+														<SelectValue placeholder="Type" />
+													</SelectTrigger>
+													<SelectContent>
+														{category.subCategories.map(subCategory => (
+															<SelectItem value={subCategory}>{subCategory}</SelectItem>
+														))}
+													</SelectContent>
+												</Select>
+											) : (
+												<span className="text-xs text-gray-500">{category.description}</span>
+											)}
+											<Filter className="w-4 h-4 text-gray-400" />
+										</div>
 									</div>
 								))}
 						</div>

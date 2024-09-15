@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { Dispatch, SetStateAction, useState } from 'react';
 import { ChevronRight, CreditCard, Wallet, Banknote, PiggyBank, Coins, Receipt, ShoppingCart, Briefcase, TrendingUp, Gift, Percent, Tag } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -75,8 +75,8 @@ const CircleProgress = ({ progress, level }: { progress: number, level: string }
 	</div>
 );
 
-export default function Dashboard(props: { riot_id: string[], riot_challenge_data: RiotChallengeData, lcu_challenge_data: LCUChallengeData }) {
-	const { riot_id, riot_challenge_data, lcu_challenge_data } = props;
+export default function Dashboard(props: { riot_id: string[], riot_challenge_data: RiotChallengeData, lcu_challenge_data: LCUChallengeData, setPage: Dispatch<SetStateAction<string>> }) {
+	const { riot_id, riot_challenge_data, lcu_challenge_data, setPage } = props;
 	const [selectedIcons, setSelectedIcons] = useState([
 		iconOptions[0],
 		iconOptions[1],
@@ -204,7 +204,7 @@ export default function Dashboard(props: { riot_id: string[], riot_challenge_dat
 						</CardContent>
 					</Card>
 					<Card className="flex flex-col">
-						<CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+						<CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => setPage("champions")}>
 							<CardTitle className="flex items-center justify-between">
 								Mastery <ChevronRight className="h-4 w-4 text-muted-foreground" />
 							</CardTitle>
