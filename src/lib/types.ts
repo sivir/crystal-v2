@@ -1,10 +1,15 @@
 export type LCUChallengeData = {
 	[id: number]: {
 		availableIds: number[];
-		capstoneGroupNames: string;
+		capstoneGroupName: string;
 		currentValue: number;
 		description: string;
 		name: string;
+		thresholds: {
+			[level: string]: {
+				value: number;
+			}
+		};
 	}
 };
 
@@ -35,16 +40,28 @@ export type MasteryData = {
 	championId: number;
 	championLevel: number;
 	championPoints: number;
+	championPointsSinceLastLevel: number;
+	championPointsUntilNextLevel: number;
 	markRequiredForNextLevel: number;
 	milestoneGrades: string[];
 	nextSeasonMilestone: {
-		requiredGradeCounts: {
+		requireGradeCounts: {
 			[grade: string]: number;
 		}
-	}
+	},
+	tokensEarned: number;
 }[];
 
 export type SummonerData = {
 	gameName: string;
 	tagLine: string;
 };
+
+export type ChampionSummaryItem = {
+	id: number;
+	name: string;
+	//iconPath: string;
+	roles: string[];
+};
+
+export type ChampionSummary = ChampionSummaryItem[];

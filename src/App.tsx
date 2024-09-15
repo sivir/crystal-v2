@@ -3,45 +3,29 @@ import { useEffect, useState } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { listen } from "@tauri-apps/api/event";
 import { Button } from "@/components/ui/button";
-import { HomeIcon, SettingsIcon, UserIcon, HelpCircleIcon, X, Square, Minus } from "lucide-react";
+import { HomeIcon, UserIcon, Bug, X, Square, Minus, Users, Globe } from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
 
 import Debug from "@/debug.tsx";
 import Dashboard from "@/dashboard.tsx";
 import Champions from "@/champions.tsx";
+import Testing from "@/testing.tsx";
 import { invoke } from "@tauri-apps/api/core";
-import { default_riot_challenge_data, LCUChallengeData, MasteryData, RiotChallengeData, SummonerData } from "@/lib/types.ts";
+import { ChampionSummary, ChampionSummaryItem, default_riot_challenge_data, LCUChallengeData, MasteryData, RiotChallengeData, SummonerData } from "@/lib/types.ts";
+import TeamBuilder from "@/team_builder.tsx";
 
 "use client";
 
 const current_window = getCurrentWindow();
 const supabase = createClient("https://jvnhtmgsncslprdrnkth.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2bmh0bWdzbmNzbHByZHJua3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTQ2Mjc4ODMsImV4cCI6MjAxMDIwMzg4M30.OOjwsPjGHEc-x8MlhrOX64tJTNENqKqEq2635HKErrk");
 
-const Profile = () => {
-	const [name, setName] = useState('');
-
-	return (
-		<div className="p-4">
-			<h1 className="text-2xl font-bold">Profile</h1>
-			<p>This is your profile page.</p>
-			<input
-				type="text"
-				value={name}
-				onChange={(e) => setName(e.target.value)}
-				placeholder="Enter your name"
-				className="border p-2 mt-2"
-			/>
-			<p>Hello, {name}!</p>
-		</div>
-	);
-};
-
 export default function Layout() {
 	const [activeContent, setActiveContent] = useState('home');
 	const [lobby, setLobby] = useState("");
 	const [lcu_challenge_data, setLCUChallengeData] = useState<LCUChallengeData>({});
 	const [riot_challenge_data, setRiotChallengeData] = useState<RiotChallengeData>(default_riot_challenge_data);
-	const [mastery_data, setMasteryData] = useState<MasteryData>();
+	const [mastery_data, setMasteryData] = useState<MasteryData>([]);
+	const [champion_map, setChampionMap] = useState<{[id: number]: ChampionSummaryItem}>({});
 	const [riot_id, setRiotId] = useState<string[]>([]);
 
 	useEffect(() => {
@@ -59,11 +43,15 @@ export default function Layout() {
 			const summoner_data = x as SummonerData;
 			setRiotId([summoner_data.gameName, summoner_data.tagLine]);
 			supabase.functions.invoke("get-user", { body: { riot_id: `${summoner_data.gameName}#${summoner_data.tagLine}` } }).then(({ data }) => {
-				const data1 = JSON.parse(data);
-				console.log(data1.riot_data);
-				setRiotChallengeData(data1.riot_data);
-				setMasteryData(data1.mastery_data);
+				const json_data = JSON.parse(data);
+				console.log(json_data.mastery_data);
+				setRiotChallengeData(json_data.riot_data);
+				setMasteryData(json_data.mastery_data);
 			});
+		});
+
+		invoke("http_request", { url: "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-summary.json" }).then(x => {
+			setChampionMap(Object.fromEntries(Object.entries(x as ChampionSummary).filter(y => y[1].id > 0 && y[1].id < 3000).map(([, value]) => [value.id, value])));
 		});
 
 		return () => {
@@ -74,8 +62,9 @@ export default function Layout() {
 	const navItems = [
 		{ icon: HomeIcon, text: 'Home', id: 'home' },
 		{ icon: UserIcon, text: 'Profile', id: 'profile' },
-		{ icon: SettingsIcon, text: 'Settings', id: 'settings' },
-		{ icon: HelpCircleIcon, text: 'Debug', id: 'help' }
+		{ icon: Users, text: 'Champions', id: 'champions' },
+		{ icon: Globe, text: 'Team Builder', id: 'globes' },
+		{ icon: Bug, text: 'Debug', id: 'help' }
 	];
 
 	return (
@@ -138,8 +127,9 @@ export default function Layout() {
 				<div className="h-16 flex flex-col justify-between px-4" data-tauri-drag-region="true" />
 				<main className="flex-1 overflow-y-auto p-4">
 					{activeContent === 'home' && <Dashboard riot_id={riot_id} lcu_challenge_data={lcu_challenge_data} riot_challenge_data={riot_challenge_data}/>}
-					{activeContent === 'profile' && <Profile />}
-					{activeContent === 'settings' && <Champions />}
+					{activeContent === 'profile' && <Testing />}
+					{activeContent === 'champions' && <Champions mastery_data={mastery_data} champion_map={champion_map}/>}
+					{activeContent === 'globes' && <TeamBuilder champion_map={champion_map} lcu_challenge_data={lcu_challenge_data} />}
 					{activeContent === 'help' && <Debug lobby={lobby} />}
 				</main>
 			</div>

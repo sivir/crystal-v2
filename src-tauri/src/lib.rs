@@ -14,6 +14,13 @@ pub struct Data {
 type TauriState<'a> = tauri::State<'a, Mutex<Data>>;
 
 #[tauri::command]
+async fn http_request(url: &str) -> Result<Value, String> {
+	let response = reqwest::get(url).await.map_err(|e| e.to_string())?;
+	let json = response.json().await.map_err(|e| e.to_string())?;
+	Ok(json)
+}
+
+#[tauri::command]
 async fn lcu_help(state: TauriState<'_>) -> Result<Value, String> {
 	let data = state.lock().await;
 	let lcu_client = &data.lcu_client;
@@ -125,7 +132,7 @@ pub fn run() {
 			ws_client: LcuWebSocket::new(),
 		}))
 		.plugin(tauri_plugin_shell::init())
-		.invoke_handler(tauri::generate_handler![lcu_help, ws_init, lcu_get_request, lcu_put_request, lcu_post_request])
+		.invoke_handler(tauri::generate_handler![lcu_help, ws_init, lcu_get_request, lcu_put_request, lcu_post_request, http_request])
 		.run(tauri::generate_context!())
 		.expect("error while running tauri application");
 }

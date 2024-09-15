@@ -1,33 +1,21 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, ArrowUpDown, BarChart, Bell, Check, Mail, Settings, User, X } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Column, ColumnDef, flexRender, getCoreRowModel, getSortedRowModel, Row, SortingState, useReactTable } from "@tanstack/react-table";
+import { ChampionSummaryItem, MasteryData } from "@/lib/types.ts";
 
-const generateRandomIcons = (min: number, max: number) => {
-	return Math.floor(Math.random() * (max - min + 1)) + min;
+type RowData = {
+	id: number;
+	name: string;
+	number: number;
+	progress: number;
+	icons: number;
+	circledLetters: { letter: string; filled: boolean }[];
+	checks: boolean[];
 };
-
-const generateCircledLetters = () => {
-	const count = Math.floor(Math.random() * 4) + 2; // 2 to 5 letters
-	const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-	return Array.from({ length: count }, () => ({
-		letter: letters[Math.floor(Math.random() * letters.length)],
-		filled: Math.random() < 0.5
-	}));
-};
-
-const data = Array.from({ length: 5 }, (_, i) => ({
-	id: i + 1,
-	name: `Person ${i + 1}`,
-	number: Math.floor(Math.random() * 99) + 1,
-	progress: Math.floor(Math.random() * 101),
-	icons: generateRandomIcons(3, 5),
-	circledLetters: generateCircledLetters(),
-	checks: Array.from({ length: 5 }, () => Math.random() > 0.5)
-}));
 
 const iconColumns = [
 	{ icon: User, label: "User" },
@@ -37,10 +25,45 @@ const iconColumns = [
 	{ icon: Mail, label: "Mail" }
 ];
 
-export default function Dashboard() {
+const default_mastery_data = {
+	championId: 0,
+	championLevel: 0,
+	championPoints: 0,
+	championPointsSinceLastLevel: 0,
+	championPointsUntilNextLevel: 0,
+	markRequiredForNextLevel: 0,
+	milestoneGrades: [],
+	nextSeasonMilestone: {
+		requireGradeCounts: {}
+	},
+	tokensEarned: 0
+};
+
+export default function Dashboard({ mastery_data, champion_map }: { mastery_data: MasteryData, champion_map: any }) {
 	const [visibleColumns, setVisibleColumns] = useState(iconColumns.map(() => true));
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [progressSortType, setProgressSortType] = useState<'leftAsc' | 'leftDesc' | 'progressAsc' | 'progressDesc'>('leftAsc');
+
+	const [data, setData] = useState<RowData[]>([]);
+
+	useEffect(() => {
+		setData(Object.entries(champion_map).map(([key, value]) => {
+			const current_champion_mastery = mastery_data.find((mastery) => mastery.championId === parseInt(key)) || default_mastery_data;
+			const grades = Object.entries(current_champion_mastery.nextSeasonMilestone.requireGradeCounts).flatMap(([key, value]) => Array(value).fill(key));
+			//console.log(grades);
+			const v = value as ChampionSummaryItem;
+			return {
+				id: parseInt(key),
+				name: v.name,
+				number: current_champion_mastery.championLevel,
+				progress: current_champion_mastery.championPoints,
+				//next_progress: 10,
+				icons: current_champion_mastery.tokensEarned,
+				circledLetters: grades.map((letter: string) => ({ letter: letter[0], filled: Math.random() < 0.5 })),
+				checks: Array.from({ length: 5 }, () => Math.random() > 0.5)
+			};
+		}));
+	}, [mastery_data]);
 
 	const toggleColumn = (index: number) => {
 		setVisibleColumns(prev => prev.map((value, i) => i === index ? !value : value));
@@ -65,7 +88,7 @@ export default function Dashboard() {
 		);
 	};
 
-	const columns = useMemo<ColumnDef<typeof data[0]>[]>(() => [
+	const columns = useMemo<ColumnDef<RowData>[]>(() => [
 		{
 			accessorKey: "name",
 			header: ({ column }) => <SortButton column={column}>Name</SortButton>
@@ -84,16 +107,15 @@ export default function Dashboard() {
 							progressDesc: 'leftAsc'
 						}[progressSortType] as typeof progressSortType;
 						setProgressSortType(nextSortType);
-						//console.log(nextSortType.endsWith('Desc'));
 						column.toggleSorting(nextSortType.endsWith('Desc'));
 					}}
-					className="hover:bg-transparent pl-0"
+					className="hover:bg-transparent pl-0 w-[150px] justify-start"
 				>
 					Mastery
 					{!column.getIsSorted() ? <ArrowUpDown className="ml-2 h-4 w-4" /> : <>{progressSortType === 'leftAsc' && <ArrowUp className="ml-2 h-4 w-4" />}
 						{progressSortType === 'leftDesc' && <ArrowDown className="ml-2 h-4 w-4" />}
-						{progressSortType === 'progressAsc' && <ArrowUp className="ml-2 h-4 w-4" />}
-						{progressSortType === 'progressDesc' && <ArrowDown className="ml-2 h-4 w-4" />}</>}
+						{progressSortType === 'progressAsc' && <> (points) <ArrowUp className="ml-2 h-4 w-4" /></>}
+						{progressSortType === 'progressDesc' && <> (points) <ArrowDown className="ml-2 h-4 w-4" /></>}</>}
 
 
 				</Button>
@@ -121,7 +143,7 @@ export default function Dashboard() {
 		},
 		{
 			accessorKey: "icons",
-			header: ({ column }) => <SortButton column={column}>Icons</SortButton>,
+			header: ({ column }) => <SortButton column={column}>Marks</SortButton>,
 			cell: ({ row }) => (
 				<div className="flex space-x-1">
 					{[...Array(row.original.icons)].map((_e, index) => (
@@ -132,7 +154,7 @@ export default function Dashboard() {
 		},
 		{
 			accessorKey: "circledLetters",
-			header: ({ column }) => <SortButton column={column}>Circled Letters</SortButton>,
+			header: ({ column }) => <SortButton column={column}>Grades</SortButton>,
 			cell: ({ row }) => (
 				<div className="flex space-x-1">
 					{row.original.circledLetters.map((item, index) => (
@@ -153,12 +175,12 @@ export default function Dashboard() {
 		...iconColumns.map((column, index) => ({
 			id: column.label,
 			accessorFn: (row: { checks: boolean[] }) => row.checks[index],
-			header: ({ column: tableColumn }: { column: Column<typeof data[0]> }) => (
+			header: ({ column: tableColumn }: { column: Column<RowData> }) => (
 				<SortButton column={tableColumn}>
 					<column.icon size={16} />
 				</SortButton>
 			),
-			cell: ({ row }: { row: Row<typeof data[0]> }) => (
+			cell: ({ row }: { row: Row<RowData> }) => (
 				<div className="flex justify-center">
 					{row.original.checks[index] ? (
 						<Check size={16} className="text-green-500" />

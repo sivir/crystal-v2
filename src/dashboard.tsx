@@ -17,7 +17,7 @@ import {
 	DialogTitle,
 	DialogTrigger
 } from "@/components/ui/dialog";
-import { LCUChallengeData, MasteryData, RiotChallengeData } from "@/lib/types.ts";
+import { LCUChallengeData, RiotChallengeData } from "@/lib/types.ts";
 
 const iconOptions = [
 	{ icon: CreditCard, label: 'Credit Card' },
@@ -34,9 +34,9 @@ const iconOptions = [
 	{ icon: Tag, label: 'Tag' }
 ];
 
-const level_colors: {[level: string]: string} = {
-	MASTER: "text-violet-500",
-	DIAMOND: "text-blue-500",
+const level_colors: { [level: string]: string } = {
+	MASTER: "text-purple-500",
+	DIAMOND: "text-blue-500"
 };
 
 const CircleProgress = ({ progress, level }: { progress: number, level: string }) => (
@@ -92,9 +92,9 @@ export default function Dashboard(props: { riot_id: string[], riot_challenge_dat
 	};
 
 	return (
-		<div className="flex flex-col">
+		 <div className="flex flex-col">{ Object.keys(lcu_challenge_data).length === 0 ? <></> :
 			<main className="flex-1 p-6 md:p-10">
-				<h2 className="text-2xl font-semibold mb-6 -mt-10">Hello, {riot_id[0]}#{riot_id[1]}</h2>
+				<h2 className="text-2xl font-semibold mb-6 -mt-10 ">Hello, <span className="font-bold bg-gradient-to-r from-blue-600 to-pink-500 inline-block text-transparent bg-clip-text">{riot_id[0]}#{riot_id[1]}</span></h2>
 				<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
 					<Card className="flex flex-col">
 						<CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
@@ -106,7 +106,8 @@ export default function Dashboard(props: { riot_id: string[], riot_challenge_dat
 							<div className="flex items-center justify-between">
 								<div className="flex flex-col items-start space-y-4">
 									<div className="flex items-center">
-										<img className="h-8 w-8 mr-2" src={`https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/challenge-mini-crystal/${riot_challenge_data.totalPoints.level.toLowerCase()}.svg`} alt="icon" />
+										<img className="h-8 w-8 mr-2" src={`https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/challenge-mini-crystal/${riot_challenge_data.totalPoints.level.toLowerCase()}.svg`}
+										     alt="icon" />
 										<div className="text-3xl font-bold">{riot_challenge_data.totalPoints.current}</div>
 										<div className="text-3xl ml-1">pts</div>
 									</div>
@@ -213,35 +214,29 @@ export default function Dashboard(props: { riot_id: string[], riot_challenge_dat
 								<div className="space-y-2">
 									<div className="flex items-center justify-between">
 										<p className="text-sm font-medium leading-none">Mastery 10</p>
-										<p className="text-sm font-medium">38/100</p>
+										<p className="text-sm font-medium">{lcu_challenge_data[401107].currentValue}/{lcu_challenge_data[401107].thresholds["MASTER"].value}</p>
 									</div>
-									<div className="h-2 bg-muted rounded-full overflow-hidden">
-										<div className="h-full bg-primary w-[38%]" />
-									</div>
+									<Progress value={lcu_challenge_data[401107].currentValue / lcu_challenge_data[401107].thresholds["MASTER"].value * 100} className="h-2 [&>*]:bg-red-500" />
 								</div>
 								<div className="space-y-2">
 									<div className="flex items-center justify-between">
 										<p className="text-sm font-medium leading-none">Mastery 7</p>
-										<p className="text-sm font-medium">42/100</p>
+										<p className="text-sm font-medium">{lcu_challenge_data[401105].currentValue}/{lcu_challenge_data[401105].thresholds["MASTER"].value}</p>
 									</div>
-									<div className="h-2 bg-muted rounded-full overflow-hidden">
-										<div className="h-full bg-primary w-[42%]" />
-									</div>
+									<Progress value={lcu_challenge_data[401105].currentValue / lcu_challenge_data[401105].thresholds["MASTER"].value * 100} className="h-2 [&>*]:bg-indigo-700" />
 								</div>
 								<div className="space-y-2">
 									<div className="flex items-center justify-between">
 										<p className="text-sm font-medium leading-none">Mastery 5</p>
-										<p className="text-sm font-medium">90/150</p>
+										<p className="text-sm font-medium">{lcu_challenge_data[401104].currentValue}/{lcu_challenge_data[401104].thresholds["MASTER"].value}</p>
 									</div>
-									<div className="h-2 bg-muted rounded-full overflow-hidden">
-										<div className="h-full bg-primary w-[65%]" />
-									</div>
+									<Progress value={lcu_challenge_data[401104].currentValue / lcu_challenge_data[401104].thresholds["MASTER"].value * 100} className="h-2 [&>*]:bg-blue-400" />
 								</div>
 							</div>
 						</CardContent>
 					</Card>
 				</div>
-			</main>
+			</main>}
 		</div>
-	);
+);
 }
