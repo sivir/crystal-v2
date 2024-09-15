@@ -1,30 +1,35 @@
-import { useState, useMemo, useEffect } from 'react';
-import { Checkbox } from "@/components/ui/checkbox"
-import { Label } from "@/components/ui/label"
+import { useState, useMemo, useEffect, useRef } from 'react';
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { ChampionSummaryItem, LCUChallengeData } from "@/lib/types.ts";
+import { Textarea } from "@/components/ui/textarea.tsx";
+import { Button } from "@/components/ui/button.tsx";
+import { Copy } from "lucide-react";
 
 function is_globe_or_harmony(challenge: any) {
 	return challenge.capstoneGroupName === "Globetrotter" || challenge.capstoneGroupName === "Harmony" && challenge.isCapstone === false;
 }
 
-export default function TeamBuilder({ champion_map, lcu_challenge_data }: { champion_map: {[_: number]: ChampionSummaryItem}, lcu_challenge_data: LCUChallengeData }) {
-	const [selectedCategories, setSelectedCategories] = useState<string[]>([])
-
+export default function TeamBuilder({ champion_map, lcu_challenge_data }: { champion_map: { [_: number]: ChampionSummaryItem }, lcu_challenge_data: LCUChallengeData }) {
+	const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 	const [champions, setChampions] = useState<any[]>([]);
 	const [filters, setFilters] = useState<any[]>([]);
+	const text_area_ref = useRef<HTMLTextAreaElement>(null);
 
-	useEffect(() => {
-		console.log(champions);
-	}, [champions]);
+	const copy_champs_to_clipboard = () => {
+		if (text_area_ref.current) {
+			navigator.clipboard.writeText(text_area_ref.current.value).then(r => console.log(r));
+		}
+	}
 
 	useEffect(() => {
 		setChampions(Object.entries(champion_map).map(([key, value]) => {
-			const challenges = Object.entries(lcu_challenge_data).filter(([_, value]) => is_globe_or_harmony(value) && value.availableIds.includes(parseInt(key))).map(([key, ]) => key);
+			const challenges = Object.entries(lcu_challenge_data).filter(([_, value]) => is_globe_or_harmony(value) && value.availableIds.includes(parseInt(key))).map(([key]) => key);
 			return {
 				id: parseInt(key),
 				name: value.name,
 				categories: challenges.concat(value.roles.map(x => "role:" + x))
-			}
+			};
 		}));
 	}, [champion_map]);
 
@@ -32,7 +37,7 @@ export default function TeamBuilder({ champion_map, lcu_challenge_data }: { cham
 		setFilters(Object.entries(lcu_challenge_data).filter(([_, value]) => is_globe_or_harmony(value)).map(([key, value]) => ({
 			id: key,
 			label: value.name,
-			group: value.capstoneGroupName,
+			group: value.capstoneGroupName
 		})));
 	}, [lcu_challenge_data]);
 
@@ -41,27 +46,23 @@ export default function TeamBuilder({ champion_map, lcu_challenge_data }: { cham
 			prev.includes(category)
 				? prev.filter(c => c !== category)
 				: [...prev, category]
-		)
-	}
+		);
+	};
 
 	const isIconVisible = (iconCategories: string[]) => {
-		if (selectedCategories.length === 0) return true
-		return selectedCategories.every(category => iconCategories.includes(category))
-	}
+		if (selectedCategories.length === 0) return true;
+		return selectedCategories.every(category => iconCategories.includes(category));
+	};
 
 	const sortedIcons = useMemo(() => {
 		return [...champions].sort((a, b) => {
-			const aVisible = isIconVisible(a.categories)
-			const bVisible = isIconVisible(b.categories)
-			if (aVisible && !bVisible) return -1
-			if (!aVisible && bVisible) return 1
-			return 0
-		})
-	}, [champions, selectedCategories])
-
-	useEffect(() => {
-		console.log(sortedIcons);
-	}, [sortedIcons]);
+			const aVisible = isIconVisible(a.categories);
+			const bVisible = isIconVisible(b.categories);
+			if (aVisible && !bVisible) return -1;
+			if (!aVisible && bVisible) return 1;
+			return 0;
+		});
+	}, [champions, selectedCategories]);
 
 	return (
 		<div className="flex p-6 gap-6">
@@ -87,20 +88,30 @@ export default function TeamBuilder({ champion_map, lcu_challenge_data }: { cham
 				))}
 			</div>
 			<div className="flex-1">
-				<div className="grid grid-cols-8 sm:grid-cols-10 md:grid-cols-12 lg:grid-cols-16">
+				<div className="mb-4">
+					<Textarea
+						ref={text_area_ref}
+						value={selectedCategories.length > 0 ? sortedIcons.filter(icon => isIconVisible(icon.categories)).map(icon => icon.name).join(', ') : ''}
+						readOnly
+						placeholder="selected champions will appear here"
+						className="w-full h-20 mb-2"
+					/>
+					<Button onClick={copy_champs_to_clipboard} className="w-full" disabled={selectedCategories.length === 0}>
+						<Copy className="w-4 h-4 mr-2" />
+						Copy to Clipboard
+					</Button>
+				</div>
+				<div className="grid justify-start" style={{ gridTemplateColumns: `repeat(auto-fit, 64px)` }}>
 					{sortedIcons.map(icon => {
-						const isVisible = isIconVisible(icon.categories)
+						const isVisible = isIconVisible(icon.categories);
 						return (
-							<div
-								key={icon.name}
-								className={`flex items-center justify-center transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-30'}`}
-							>
+							<div key={icon.name} className={`flex items-center justify-center transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-30'}`}>
 								<img src={"https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/" + icon.id + ".png"} className="w-16 h-16" alt={icon.name} />
 							</div>
-						)
+						);
 					})}
 				</div>
 			</div>
 		</div>
-	)
+	);
 }
