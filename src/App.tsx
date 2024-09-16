@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { listen } from "@tauri-apps/api/event";
 import { Button } from "@/components/ui/button";
-import { HomeIcon, Bug, X, Square, Minus, Users, Globe, FlaskConical } from "lucide-react";
+import { HomeIcon, Bug, X, Square, Minus, Users, Globe, FlaskConical, LayoutDashboard } from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
 
 import Debug from "@/debug.tsx";
@@ -13,6 +13,7 @@ import Testing from "@/testing.tsx";
 import { invoke } from "@tauri-apps/api/core";
 import { ChampionSummary, ChampionSummaryItem, default_riot_challenge_data, LCUChallengeData, MasteryData, RiotChallengeData, SummonerData } from "@/lib/types.ts";
 import TeamBuilder from "@/team_builder.tsx";
+import Lobby from "@/lobby.tsx";
 
 "use client";
 
@@ -22,6 +23,7 @@ const supabase = createClient("https://jvnhtmgsncslprdrnkth.supabase.co", "eyJhb
 export default function Layout() {
 	const [page, setPage] = useState('home');
 	const [lobby, setLobby] = useState<string[]>([]);
+	const [lobby_puuids, setLobbyPUUIDs] = useState<string[]>([]);
 	const [lcu_challenge_data, setLCUChallengeData] = useState<LCUChallengeData>({});
 	const [riot_challenge_data, setRiotChallengeData] = useState<RiotChallengeData>(default_riot_challenge_data);
 	const [mastery_data, setMasteryData] = useState<MasteryData>([]);
@@ -30,8 +32,11 @@ export default function Layout() {
 
 	useEffect(() => {
 		const unlisten = listen("lobby", (event) => {
-			Promise.all((event.payload as string[]).map(x => invoke("lcu_get_request", { url: "/lol-summoner/v2/summoners/puuid/" + x }).then(x => x.gameName + "#" + x.tagLine))).then(x => {console.log(x); setLobby(x)});
-			console.log(event);
+			const event_puuids = event.payload as string[];
+			if (event_puuids !== lobby_puuids) {
+				setLobbyPUUIDs(event_puuids);
+				Promise.all(event_puuids.map(x => invoke("lcu_get_request", { url: "/lol-summoner/v2/summoners/puuid/" + x }).then(x => x.gameName + "#" + x.tagLine))).then(setLobby);
+			}
 		});
 
 		invoke("lcu_get_request", { url: "/lol-challenges/v1/challenges/local-player" }).then(x => {
@@ -44,8 +49,9 @@ export default function Layout() {
 			setRiotId([summoner_data.gameName, summoner_data.tagLine]);
 			supabase.functions.invoke("get-user", { body: { riot_id: `${summoner_data.gameName}#${summoner_data.tagLine}` } }).then(({ data }) => {
 				const json_data = JSON.parse(data);
-				console.log(json_data.mastery_data);
+				console.log("mastery_data", json_data.mastery_data);
 				setRiotChallengeData(json_data.riot_data);
+				console.log("riot_data", json_data.riot_data);
 				setMasteryData(json_data.mastery_data);
 			});
 		});
@@ -63,6 +69,7 @@ export default function Layout() {
 
 	const navItems = [
 		{ icon: HomeIcon, text: 'Home', id: 'home' },
+		{ icon: LayoutDashboard, text: 'Lobby', id: 'lobby' },
 		{ icon: FlaskConical, text: 'Testing', id: 'test' },
 		{ icon: Users, text: 'Champions', id: 'champions' },
 		{ icon: Globe, text: 'Team Builder', id: 'globes' },
@@ -127,14 +134,23 @@ export default function Layout() {
 
 			<div className="flex-1 ml-64 flex flex-col h-screen">
 				<div className="h-16 flex flex-col justify-between px-4" data-tauri-drag-region="true" />
+				{/*<main className="flex-1 overflow-y-auto p-4">*/}
+				{/*	{page === 'home' && <Dashboard riot_id={riot_id} lcu_challenge_data={lcu_challenge_data} riot_challenge_data={riot_challenge_data} setPage={setPage}/>}*/}
+				{/*	{page === 'test' && <Testing />}*/}
+				{/*	{page === 'lobby' && <Lobby lobby={lobby} supabase={supabase}/>}*/}
+				{/*	{page === 'champions' && <Champions mastery_data={mastery_data} champion_map={champion_map}/>}*/}
+				{/*	{page === 'globes' && <TeamBuilder champion_map={champion_map} lcu_challenge_data={lcu_challenge_data} />}*/}
+				{/*	{page === 'help' && <Debug lobby={lobby} />}*/}
+				{/*</main>*/}
 				<main className="flex-1 overflow-y-auto p-4">
-					{page === 'home' && <Dashboard riot_id={riot_id} lcu_challenge_data={lcu_challenge_data} riot_challenge_data={riot_challenge_data} setPage={setPage}/>}
-					{page === 'test' && <Testing />}
-					{page === 'champions' && <Champions mastery_data={mastery_data} champion_map={champion_map}/>}
-					{page === 'globes' && <TeamBuilder champion_map={champion_map} lcu_challenge_data={lcu_challenge_data} />}
-					{page === 'help' && <Debug lobby={lobby} />}
+					<div style={{ display: page === 'home' ? "" : "none" }}><Dashboard riot_id={riot_id} lcu_challenge_data={lcu_challenge_data} riot_challenge_data={riot_challenge_data} setPage={setPage} /></div>
+					<div style={{ display: page === 'lobby' ? "" : "none" }}><Lobby lobby={lobby} supabase={supabase} lcu_challenge_data={lcu_challenge_data} /></div>
+					<div style={{ display: page === 'test' ? "" : "none" }}><Testing /></div>
+					<div style={{ display: page === 'champions' ? "" : "none" }}><Champions mastery_data={mastery_data} champion_map={champion_map} /></div>
+					<div style={{ display: page === 'globes' ? "" : "none" }}><TeamBuilder champion_map={champion_map} lcu_challenge_data={lcu_challenge_data} /></div>
+					<div style={{ display: page === 'help' ? "" : "none" }}><Debug lobby={lobby} /></div>
 				</main>
 			</div>
 		</div>
-	);
+);
 }

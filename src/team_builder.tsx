@@ -22,7 +22,7 @@ export default function TeamBuilder({ champion_map, lcu_challenge_data }: { cham
 		if (text_area_ref.current) {
 			navigator.clipboard.writeText(text_area_ref.current.value).then(r => console.log(r));
 		}
-	}
+	};
 
 	useEffect(() => {
 		setChampions(Object.entries(champion_map).map(([key, value]) => {
@@ -91,7 +91,7 @@ export default function TeamBuilder({ champion_map, lcu_challenge_data }: { cham
 														<SelectValue placeholder="Type" />
 													</SelectTrigger>
 													<SelectContent>
-														{category.subCategories.map(subCategory => (
+														{category.subCategories.map((subCategory: string) => (
 															<SelectItem value={subCategory}>{subCategory}</SelectItem>
 														))}
 													</SelectContent>

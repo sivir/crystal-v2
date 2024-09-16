@@ -85,9 +85,18 @@ async fn lcu_post_request(state: TauriState<'_>, url: String, body: Value) -> Re
 	}
 }
 
+static mut WS_INITIALIZED: bool = false;
+
 #[tauri::command]
 async fn ws_init(state: TauriState<'_>, app_handle: AppHandle) -> Result<(), String> {
 	println!("ws_init");
+	unsafe {
+		if WS_INITIALIZED {
+			return Ok(());
+		}
+		WS_INITIALIZED = true;
+	}
+	println!("started");
 	let mut data = state.lock().await;
 	let ws_client = &mut data.ws_client;
 
