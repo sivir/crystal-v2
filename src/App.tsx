@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { listen } from "@tauri-apps/api/event";
 import { Button } from "@/components/ui/button";
-import { HomeIcon, UserIcon, Bug, X, Square, Minus, Users, Globe, FlaskConical } from "lucide-react";
+import { HomeIcon, Bug, X, Square, Minus, Users, Globe, FlaskConical } from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
 
 import Debug from "@/debug.tsx";
@@ -21,7 +21,7 @@ const supabase = createClient("https://jvnhtmgsncslprdrnkth.supabase.co", "eyJhb
 
 export default function Layout() {
 	const [page, setPage] = useState('home');
-	const [lobby, setLobby] = useState("");
+	const [lobby, setLobby] = useState<string[]>([]);
 	const [lcu_challenge_data, setLCUChallengeData] = useState<LCUChallengeData>({});
 	const [riot_challenge_data, setRiotChallengeData] = useState<RiotChallengeData>(default_riot_challenge_data);
 	const [mastery_data, setMasteryData] = useState<MasteryData>([]);
@@ -30,7 +30,7 @@ export default function Layout() {
 
 	useEffect(() => {
 		const unlisten = listen("lobby", (event) => {
-			setLobby(JSON.stringify(event.payload));
+			Promise.all((event.payload as string[]).map(x => invoke("lcu_get_request", { url: "/lol-summoner/v2/summoners/puuid/" + x }).then(x => x.gameName + "#" + x.tagLine))).then(x => {console.log(x); setLobby(x)});
 			console.log(event);
 		});
 
@@ -49,6 +49,8 @@ export default function Layout() {
 				setMasteryData(json_data.mastery_data);
 			});
 		});
+
+		invoke("ws_init").then(x => console.log(x));
 
 		invoke("http_request", { url: "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-summary.json" }).then(x => {
 			setChampionMap(Object.fromEntries(Object.entries(x as ChampionSummary).filter(y => y[1].id > 0 && y[1].id < 3000).map(([, value]) => [value.id, value])));

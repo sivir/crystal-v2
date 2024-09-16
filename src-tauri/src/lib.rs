@@ -99,8 +99,8 @@ async fn ws_init(state: TauriState<'_>, app_handle: AppHandle) -> Result<(), Str
 	impl Subscriber for LobbyEventHandler {
 		fn on_event(&mut self, event: &Event, _: &mut bool) {
 			if event.2.uri == "/lol-lobby/v2/lobby/members" {
-				self.lobby_members = event.2.data.as_array().unwrap().iter().map(|x| x["summonerName"].as_str().unwrap().to_string()).collect();
-				println!("{:?}", event.2.data);
+				self.lobby_members = event.2.data.as_array().unwrap().iter().map(|x| x["puuid"].as_str().unwrap().to_string()).collect();
+				println!("{:?}", self.lobby_members);
 				self.app_handle.emit("lobby", self.lobby_members.clone()).unwrap();
 			}
 			if event.2.event_type == "Delete" {
@@ -113,7 +113,7 @@ async fn ws_init(state: TauriState<'_>, app_handle: AppHandle) -> Result<(), Str
 	struct EventHandler;
 	impl Subscriber for EventHandler {
 		fn on_event(&mut self, event: &Event, _: &mut bool) {
-			println!("{:?}", event);
+			//println!("{:?}", event);
 		}
 	}
 
