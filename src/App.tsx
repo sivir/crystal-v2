@@ -31,6 +31,13 @@ export default function Layout() {
 	const [riot_id, setRiotId] = useState<string[]>([]);
 
 	useEffect(() => {
+		invoke("lcu_get_request", { url: "/lol-lobby/v2/lobby/members" }).then(response => {
+			const data = response as {puuid: number}[];
+			const puuids = data.map((member: any) => member.puuid);
+			setLobbyPUUIDs(puuids);
+			Promise.all(puuids.map(x => invoke("lcu_get_request", { url: "/lol-summoner/v2/summoners/puuid/" + x }).then(x => x.gameName + "#" + x.tagLine))).then(setLobby);
+		});
+
 		const unlisten = listen("lobby", (event) => {
 			const event_puuids = event.payload as string[];
 			if (event_puuids !== lobby_puuids) {

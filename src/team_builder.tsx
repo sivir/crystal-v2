@@ -20,9 +20,13 @@ export default function TeamBuilder({ champion_map, lcu_challenge_data }: { cham
 
 	const copy_champs_to_clipboard = () => {
 		if (text_area_ref.current) {
-			navigator.clipboard.writeText(text_area_ref.current.value).then(r => console.log(r));
+			navigator.clipboard.writeText(text_area_ref.current.value).then(r => console.log("clipboard", r));
 		}
 	};
+
+	useEffect(() => {
+		console.log("champions", champions);
+	}, [champions]);
 
 	useEffect(() => {
 		setChampions(Object.entries(champion_map).map(([key, value]) => {
@@ -33,7 +37,7 @@ export default function TeamBuilder({ champion_map, lcu_challenge_data }: { cham
 				categories: challenges.concat(value.roles.map(x => "role:" + x))
 			};
 		}));
-	}, [champion_map]);
+	}, [champion_map, lcu_challenge_data]);
 
 	useEffect(() => {
 		setFilters(Object.entries(lcu_challenge_data).filter(([_, value]) => is_globe_or_harmony(value)).map(([key, value]) => ({

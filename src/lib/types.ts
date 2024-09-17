@@ -22,6 +22,7 @@ export type RiotChallengeData = {
 	},
 	challenges: {
 		challengeId: number;
+		level: string;
 		value: number;
 	}[]
 };
