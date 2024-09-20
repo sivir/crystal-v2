@@ -163,7 +163,7 @@ export default function Layout() {
 					<div style={{ display: page === 'search' ? "" : "none" }}><Profile supabase={supabase} lcu_challenge_data={lcu_challenge_data}/></div>
 					<div style={{ display: page === 'lobby' ? "" : "none" }}><Lobby lobby={lobby} supabase={supabase} lcu_challenge_data={lcu_challenge_data} /></div>
 					<div style={{ display: page === 'test' ? "" : "none" }}><Testing /></div>
-					<div style={{ display: page === 'champions' ? "" : "none" }}><Champions mastery_data={mastery_data} champion_map={champion_map} /></div>
+					<div style={{ display: page === 'champions' ? "" : "none" }}><Champions mastery_data={mastery_data} champion_map={champion_map} lcu_challenge_data={lcu_challenge_data} /></div>
 					<div style={{ display: page === 'globes' ? "" : "none" }}><TeamBuilder champion_map={champion_map} lcu_challenge_data={lcu_challenge_data} /></div>
 					<div style={{ display: page === 'help' ? "" : "none" }}><Debug lobby={lobby} /></div>
 				</main>

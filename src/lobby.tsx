@@ -32,6 +32,7 @@ export default function Lobby({ lobby, supabase, lcu_challenge_data }: { lobby: 
 				return json_data.riot_data;
 			})
 		)).then((r: RiotChallengeData[]) => {
+			console.log(lobby, r);
 			if (r.length === 0) {
 				setData([[]]);
 			} else {
@@ -67,7 +68,6 @@ export default function Lobby({ lobby, supabase, lcu_challenge_data }: { lobby: 
 					<React.Fragment key={`row-${rowIndex}`}>
 						<div className="font-semibold">{name}</div>
 						{sortedIndices.map(colIndex => {
-							console.log("data1", data, rowIndex, data[rowIndex], lobby);
 							return (
 							<div key={`cell-${rowIndex}-${colIndex}`} className="w-12 h-12 flex items-center justify-center mx-auto relative bg-cover" style={{backgroundImage: `url(https://raw.communitydragon.org/latest/game/assets/challenges/config/${globes_and_harmonies[colIndex][0]}/tokens/${data[rowIndex][colIndex].level.toLowerCase()}.png)`}}>
 				                  <span className="absolute bottom-0 right-0 text-xs font-semibold bg-white/70 px-1 rounded-bl-md rounded-tr-md">

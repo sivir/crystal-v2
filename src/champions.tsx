@@ -5,13 +5,15 @@ import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Column, ColumnDef, flexRender, getCoreRowModel, getSortedRowModel, Row, SortingState, useReactTable } from "@tanstack/react-table";
-import { ChampionSummaryItem, MasteryData } from "@/lib/types.ts";
+import { ChampionSummaryItem, LCUChallengeData, MasteryData } from "@/lib/types.ts";
 
 type RowData = {
 	id: number;
 	name: string;
 	number: number;
 	progress: number;
+	prev_progress: number;
+	next_progress: number;
 	icons: number;
 	circledLetters: { letter: string; filled: boolean }[];
 	checks: boolean[];
@@ -24,6 +26,8 @@ const iconColumns = [
 	{ icon: Bell, label: "Notifications" },
 	{ icon: Mail, label: "Mail" }
 ];
+
+const tracked_challenges = [];
 
 const default_mastery_data = {
 	championId: 0,
@@ -39,7 +43,7 @@ const default_mastery_data = {
 	tokensEarned: 0
 };
 
-export default function Dashboard({ mastery_data, champion_map }: { mastery_data: MasteryData, champion_map: any }) {
+export default function Champions({ mastery_data, champion_map, lcu_challenge_data }: { mastery_data: MasteryData, champion_map: {[_: number]: ChampionSummaryItem}, lcu_challenge_data: LCUChallengeData }) {
 	const [visibleColumns, setVisibleColumns] = useState(iconColumns.map(() => true));
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [progressSortType, setProgressSortType] = useState<'leftAsc' | 'leftDesc' | 'progressAsc' | 'progressDesc'>('leftAsc');
@@ -51,13 +55,13 @@ export default function Dashboard({ mastery_data, champion_map }: { mastery_data
 			const current_champion_mastery = mastery_data.find((mastery) => mastery.championId === parseInt(key)) || default_mastery_data;
 			const grades = Object.entries(current_champion_mastery.nextSeasonMilestone.requireGradeCounts).flatMap(([key, value]) => Array(value).fill(key));
 			//console.log(grades);
-			const v = value as ChampionSummaryItem;
 			return {
 				id: parseInt(key),
-				name: v.name,
+				name: value.name,
 				number: current_champion_mastery.championLevel,
 				progress: current_champion_mastery.championPoints,
-				//next_progress: 10,
+				prev_progress: current_champion_mastery.championPointsSinceLastLevel,
+				next_progress: current_champion_mastery.championPointsUntilNextLevel,
 				icons: current_champion_mastery.tokensEarned,
 				circledLetters: grades.map((letter: string) => ({ letter: letter[0], filled: Math.random() < 0.5 })),
 				checks: Array.from({ length: 5 }, () => Math.random() > 0.5)
@@ -71,11 +75,7 @@ export default function Dashboard({ mastery_data, champion_map }: { mastery_data
 
 	const SortButton = ({ column, children }: { column: any; children: React.ReactNode }) => {
 		return (
-			<Button
-				variant="ghost"
-				onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-				className="hover:bg-transparent pl-0"
-			>
+			<Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} className="hover:bg-transparent pl-0">
 				{children}
 				{column.getIsSorted() === "asc" ? (
 					<ArrowUp className="ml-2 h-4 w-4" />
@@ -134,9 +134,9 @@ export default function Dashboard({ mastery_data, champion_map }: { mastery_data
 					<span className="text-sm font-medium w-6">{row.original.number}</span>
 					<div className="flex-grow">
 						<div className="flex justify-between mb-1">
-							<span className="text-sm font-medium">{row.original.progress}/100</span>
+							<span className="text-sm font-medium">{row.original.progress} (+{row.original.next_progress > 0 ? row.original.next_progress : "ready to level"})</span>
 						</div>
-						<Progress value={row.original.progress} className="w-full h-1" />
+						<Progress value={row.original.progress / (row.original.progress + row.original.next_progress) * 100} className="w-full h-1" />
 					</div>
 				</div>
 			)
@@ -250,10 +250,7 @@ export default function Dashboard({ mastery_data, champion_map }: { mastery_data
 					<TableBody>
 						{table.getRowModel().rows?.length ? (
 							table.getRowModel().rows.map((row) => (
-								<TableRow
-									key={row.id}
-									data-state={row.getIsSelected() && "selected"}
-								>
+								<TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
 									{row.getVisibleCells().map((cell) => (
 										<TableCell key={cell.id} className="px-2">
 											{flexRender(cell.column.columnDef.cell, cell.getContext())}

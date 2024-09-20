@@ -26,7 +26,7 @@ const tasksData = [
 	}
 ];
 
-const ComparisonProgress = ({ currentProgress, comparedProgress }: {currentProgress: number, comparedProgress: number} ) => {
+const ComparisonProgress = ({ currentProgress, comparedProgress }: { currentProgress: number, comparedProgress: number }) => {
 	const difference = currentProgress - comparedProgress;
 	const differenceColor = difference > 0 ? "text-green-500" : difference < 0 ? "text-red-500" : "text-yellow-500";
 
@@ -58,12 +58,12 @@ const TaskList = ({ tasks, showComparison }) => {
 	};
 
 	return (
-		<div className="space-y-3">
+		<div className="space-y-3 m-0.5">
 			{tasks.map((task) => (
 				<div key={task.id} className="bg-white shadow rounded-lg p-3">
 					<div className="flex items-center justify-between mb-2">
 						<div className="flex items-center">
-							<img src={`https://raw.communitydragon.org/latest/game/assets/challenges/config/${task.id}/tokens/${task.current_level.toLowerCase()}.png`} alt="icon" width="32" className="mr-2"/>
+							<img src={`https://raw.communitydragon.org/latest/game/assets/challenges/config/${task.id}/tokens/${task.current_level.toLowerCase()}.png`} alt="icon" width="32" className="mr-2" />
 							<div>
 								<h2 className="text-sm font-semibold">{task.name}</h2>
 								<p className="text-xs text-gray-600">{task.description}</p>
@@ -204,69 +204,71 @@ export default function Profile({ supabase, lcu_challenge_data }: { supabase: Su
 
 	return (
 		<div className="container mx-auto p-4 max-w-7xl">
-			<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-				<div>
-					<label htmlFor="currentUser" className="text-sm font-medium text-gray-700 mb-1 block">
-						Current User
-					</label>
-					<div className="flex">
-						<div className="relative flex-grow">
-							<User className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-							<Input
-								id="currentUser"
-								type="text"
-								placeholder="enter a riot id..."
-								value={current_user_search}
-								onChange={(e) => setUserSearch(e.target.value)}
-								onKeyDown={(e) => e.key === 'Enter' && setCurrentUser(current_user_search)}
-								className="pl-8"
-							/>
-						</div>
-						<Button onClick={() => setCurrentUser(current_user_search)} className="ml-2">
-							Search
-						</Button>
-					</div>
-				</div>
-				{current_user ? <>
+			<div className="sticky top-0 z-10 pb-4">
+				<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
 					<div>
-						<label htmlFor="compareUser" className="text-sm font-medium text-gray-700 mb-1 block">
-							Compare with User
+						<label htmlFor="currentUser" className="text-sm font-medium text-gray-700 mb-1 block">
+							Current User
 						</label>
 						<div className="flex">
 							<div className="relative flex-grow">
 								<User className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
 								<Input
-									id="compareUser"
+									id="currentUser"
 									type="text"
-									placeholder="enter a riot id to compare with..."
-									value={compare_user_search}
-									onChange={(e) => setCompareUserSearch(e.target.value)}
-									onKeyDown={(e) => e.key === 'Enter' && setCompareUser(compare_user_search)}
+									placeholder="enter a riot id..."
+									value={current_user_search}
+									onChange={(e) => setUserSearch(e.target.value)}
+									onKeyDown={(e) => e.key === 'Enter' && setCurrentUser(current_user_search)}
 									className="pl-8"
 								/>
 							</div>
-							<Button onClick={() => setCompareUser(compare_user_search)} className="ml-2">
-								Compare
+							<Button onClick={() => setCurrentUser(current_user_search)} className="ml-2">
+								Search
 							</Button>
 						</div>
 					</div>
-					<div>
-						<label htmlFor="taskSearch" className="text-sm font-medium text-gray-700 mb-1 block">
-							Search Tasks
-						</label>
-						<div className="relative">
-							<Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-							<Input
-								id="taskSearch"
-								type="text"
-								placeholder="Search tasks..."
-								value={challenge_search}
-								onChange={(e) => setChallengeSearch(e.target.value)}
-								className="pl-8"
-							/>
+					{current_user ? <>
+						<div>
+							<label htmlFor="compareUser" className="text-sm font-medium text-gray-700 mb-1 block">
+								Compare with User
+							</label>
+							<div className="flex">
+								<div className="relative flex-grow">
+									<User className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+									<Input
+										id="compareUser"
+										type="text"
+										placeholder="enter a riot id to compare with..."
+										value={compare_user_search}
+										onChange={(e) => setCompareUserSearch(e.target.value)}
+										onKeyDown={(e) => e.key === 'Enter' && setCompareUser(compare_user_search)}
+										className="pl-8"
+									/>
+								</div>
+								<Button onClick={() => setCompareUser(compare_user_search)} className="ml-2">
+									Compare
+								</Button>
+							</div>
 						</div>
-					</div>
-				</> : <></>}
+						<div>
+							<label htmlFor="taskSearch" className="text-sm font-medium text-gray-700 mb-1 block">
+								Search Tasks
+							</label>
+							<div className="relative">
+								<Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+								<Input
+									id="taskSearch"
+									type="text"
+									placeholder="Search tasks..."
+									value={challenge_search}
+									onChange={(e) => setChallengeSearch(e.target.value)}
+									className="pl-8"
+								/>
+							</div>
+						</div>
+					</> : <></>}
+				</div>
 			</div>
 
 			{current_user ? current_user_data ? (
@@ -281,49 +283,53 @@ export default function Profile({ supabase, lcu_challenge_data }: { supabase: Su
 								</Button>
 							)}
 						</div>
-						<TaskList tasks={filtered_data} showComparison={isComparing} />
+						<div className="overflow-y-auto max-h-[calc(100vh-300px)]">
+							<TaskList tasks={filtered_data} showComparison={isComparing} />
+						</div>
 					</div>
 					<div className="md:w-1/4">
-						<h3 className="text-lg font-semibold mb-2 flex items-center">
-							<Filter className="w-5 h-5 mr-2" />
-							Filters
-						</h3>
-						<div className="mb-4">
-							<Select value={sortBy} onValueChange={setSortBy}>
-								<SelectTrigger>
-									<SelectValue placeholder="Sort by..." />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="id">Default Sort (ID)</SelectItem>
-									<SelectItem value="name">Sort by Name</SelectItem>
-									<SelectItem value="progress_asc">Sort by Progress (Ascending)</SelectItem>
-									<SelectItem value="progress_desc">Sort by Progress (Descending)</SelectItem>
-									<SelectItem value="category">Sort by Category</SelectItem>
-									{isComparing && <SelectItem value="diff_asc">Sort by Difference (Ascending)</SelectItem>}
-									{isComparing && <SelectItem value="diff_desc">Sort by Difference (Descending)</SelectItem>}
-								</SelectContent>
-							</Select>
-						</div>
-						<div className="space-y-4">
-							{Object.entries(filters).map(([category, subcategories]) => (
-								<div key={category}>
-									<h4 className="font-medium mb-2">{category}</h4>
-									<div className="space-y-2">
-										{Object.entries(subcategories).map(([subcategory, isChecked]) => (
-											<div key={subcategory} className="flex items-center">
-												<Checkbox
-													id={`${category}-${subcategory}`}
-													checked={isChecked}
-													onCheckedChange={() => handleFilterChange(category, subcategory)}
-												/>
-												<label htmlFor={`${category}-${subcategory}`} className="ml-2 text-sm font-medium text-gray-700">
-													{subcategory}
-												</label>
-											</div>
-										))}
+						<div className="sticky top-[120px]">
+							<h3 className="text-lg font-semibold mb-2 flex items-center">
+								<Filter className="w-5 h-5 mr-2" />
+								Filters
+							</h3>
+							<div className="mb-4">
+								<Select value={sortBy} onValueChange={setSortBy}>
+									<SelectTrigger>
+										<SelectValue placeholder="Sort by..." />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="id">Default Sort (ID)</SelectItem>
+										<SelectItem value="name">Sort by Name</SelectItem>
+										<SelectItem value="progress_asc">Sort by Progress (Ascending)</SelectItem>
+										<SelectItem value="progress_desc">Sort by Progress (Descending)</SelectItem>
+										<SelectItem value="category">Sort by Category</SelectItem>
+										{isComparing && <SelectItem value="diff_asc">Sort by Difference (Ascending)</SelectItem>}
+										{isComparing && <SelectItem value="diff_desc">Sort by Difference (Descending)</SelectItem>}
+									</SelectContent>
+								</Select>
+							</div>
+							<div className="space-y-4">
+								{Object.entries(filters).map(([category, subcategories]) => (
+									<div key={category}>
+										<h4 className="font-medium mb-2">{category}</h4>
+										<div className="space-y-2">
+											{Object.entries(subcategories).map(([subcategory, isChecked]) => (
+												<div key={subcategory} className="flex items-center">
+													<Checkbox
+														id={`${category}-${subcategory}`}
+														checked={isChecked}
+														onCheckedChange={() => handleFilterChange(category, subcategory)}
+													/>
+													<label htmlFor={`${category}-${subcategory}`} className="ml-2 text-sm font-medium text-gray-700">
+														{subcategory}
+													</label>
+												</div>
+											))}
+										</div>
 									</div>
-								</div>
-							))}
+								))}
+							</div>
 						</div>
 					</div>
 				</div>
