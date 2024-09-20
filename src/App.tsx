@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { listen } from "@tauri-apps/api/event";
 import { Button } from "@/components/ui/button";
-import { HomeIcon, Bug, X, Square, Minus, Users, Globe, FlaskConical, LayoutDashboard } from "lucide-react";
+import { Bug, FlaskConical, Globe, HomeIcon, LayoutDashboard, Minus, Square, Users, X, UserSearch } from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
 
 import Debug from "@/debug.tsx";
@@ -14,6 +14,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { ChampionSummary, ChampionSummaryItem, default_riot_challenge_data, LCUChallengeData, MasteryData, RiotChallengeData, SummonerData } from "@/lib/types.ts";
 import TeamBuilder from "@/team_builder.tsx";
 import Lobby from "@/lobby.tsx";
+import Profile from "@/search.tsx";
 
 "use client";
 
@@ -30,19 +31,25 @@ export default function Layout() {
 	const [champion_map, setChampionMap] = useState<{[id: number]: ChampionSummaryItem}>({});
 	const [riot_id, setRiotId] = useState<string[]>([]);
 
+	function update_lobby(puuids: string[]) {
+		setLobbyPUUIDs(puuids);
+		Promise.all(puuids.map(puuid => invoke("lcu_get_request", { url: "/lol-summoner/v2/summoners/puuid/" + puuid }).then(x => {
+			const summoner = x as SummonerData;
+			return summoner.gameName + "#" + summoner.tagLine;
+		}))).then(setLobby);
+	}
+
 	useEffect(() => {
 		invoke("lcu_get_request", { url: "/lol-lobby/v2/lobby/members" }).then(response => {
 			const data = response as {puuid: number}[];
 			const puuids = data.map((member: any) => member.puuid);
-			setLobbyPUUIDs(puuids);
-			Promise.all(puuids.map(x => invoke("lcu_get_request", { url: "/lol-summoner/v2/summoners/puuid/" + x }).then(x => x.gameName + "#" + x.tagLine))).then(setLobby);
+			update_lobby(puuids);
 		});
 
 		const unlisten = listen("lobby", (event) => {
 			const event_puuids = event.payload as string[];
-			if (event_puuids !== lobby_puuids) {
-				setLobbyPUUIDs(event_puuids);
-				Promise.all(event_puuids.map(x => invoke("lcu_get_request", { url: "/lol-summoner/v2/summoners/puuid/" + x }).then(x => x.gameName + "#" + x.tagLine))).then(setLobby);
+			if (JSON.stringify(event_puuids) !== JSON.stringify(lobby_puuids)) {
+				update_lobby(event_puuids);
 			}
 		});
 
@@ -76,10 +83,11 @@ export default function Layout() {
 
 	const navItems = [
 		{ icon: HomeIcon, text: 'Home', id: 'home' },
+		{ icon: UserSearch, text: 'Summoner Lookup', id: 'search' },
 		{ icon: LayoutDashboard, text: 'Lobby', id: 'lobby' },
-		{ icon: FlaskConical, text: 'Testing', id: 'test' },
 		{ icon: Users, text: 'Champions', id: 'champions' },
 		{ icon: Globe, text: 'Team Builder', id: 'globes' },
+		{ icon: FlaskConical, text: 'Testing', id: 'test' },
 		{ icon: Bug, text: 'Debug', id: 'help' }
 	];
 
@@ -119,7 +127,8 @@ export default function Layout() {
 					<div className="flex items-center pl-2.5 mb-5">
 						<img
 							src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/challenges-shared/challenge-intro-modal-diamond.png"
-							width="32" className="mr-3" alt="Logo" />
+							// src="https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/rarity-gem-icons/transcendent.png"
+							width="32" className="mr-2" alt="Logo" />
 						<span className="self-center text-xl font-semibold whitespace-nowrap dark:text-white">crystal</span>
 					</div>
 					<ul className="space-y-2 font-medium">
@@ -151,6 +160,7 @@ export default function Layout() {
 				{/*</main>*/}
 				<main className="flex-1 overflow-y-auto p-4">
 					<div style={{ display: page === 'home' ? "" : "none" }}><Dashboard riot_id={riot_id} lcu_challenge_data={lcu_challenge_data} riot_challenge_data={riot_challenge_data} setPage={setPage} /></div>
+					<div style={{ display: page === 'search' ? "" : "none" }}><Profile supabase={supabase} lcu_challenge_data={lcu_challenge_data}/></div>
 					<div style={{ display: page === 'lobby' ? "" : "none" }}><Lobby lobby={lobby} supabase={supabase} lcu_challenge_data={lcu_challenge_data} /></div>
 					<div style={{ display: page === 'test' ? "" : "none" }}><Testing /></div>
 					<div style={{ display: page === 'champions' ? "" : "none" }}><Champions mastery_data={mastery_data} champion_map={champion_map} /></div>

@@ -16,14 +16,17 @@ type LobbyChallenge = {
 	level: string;
 };
 
+// function ARAMChampSelect() {
+//
+// }
+
 export default function Lobby({ lobby, supabase, lcu_challenge_data }: { lobby: string[], supabase: SupabaseClient, lcu_challenge_data: LCUChallengeData }) {
-	const memoized_lobby = useMemo(() => lobby, [lobby]);
 	const [data, setData] = useState<LobbyChallenge[][]>([[]]);
 	const globes_and_harmonies = useMemo(() => Object.entries(lcu_challenge_data).filter(([, value]) => is_globe_or_harmony(value)), [lcu_challenge_data]);
 
 	useEffect(() => {
-		console.log("lobby change:" + memoized_lobby);
-		Promise.all(memoized_lobby.map(riot_id =>
+		console.log("lobby change:" + lobby);
+		Promise.all(lobby.map(riot_id =>
 			supabase.functions.invoke("get-user", { body: { riot_id } }).then(({ data }) => {
 				const json_data = JSON.parse(data);
 				return json_data.riot_data;
@@ -31,7 +34,7 @@ export default function Lobby({ lobby, supabase, lcu_challenge_data }: { lobby: 
 		)).then((r: RiotChallengeData[]) => {
 			if (r.length === 0) {
 				setData([[]]);
-			} else
+			} else {
 				setData(r.map(challenge_data => globes_and_harmonies.map(([key]) => {
 					const current_data = challenge_data.challenges.find(x => x.challengeId === parseInt(key));
 					if (current_data === undefined) {
@@ -39,8 +42,9 @@ export default function Lobby({ lobby, supabase, lcu_challenge_data }: { lobby: 
 					}
 					return { value: current_data.value, level: current_data.level };
 				})));
+			}
 		});
-	}, [memoized_lobby, lcu_challenge_data]);
+	}, [JSON.stringify(lobby), lcu_challenge_data]);
 
 	useEffect(() => {
 		console.log("Data after update:", data);
@@ -59,16 +63,18 @@ export default function Lobby({ lobby, supabase, lcu_challenge_data }: { lobby: 
 					<div key={`header-${index}`}></div> // Empty div to maintain grid structure
 				))}
 
-				{memoized_lobby.map((name, rowIndex) => (
+				{lobby.map((name, rowIndex) => (
 					<React.Fragment key={`row-${rowIndex}`}>
 						<div className="font-semibold">{name}</div>
-						{sortedIndices.map(colIndex => (
+						{sortedIndices.map(colIndex => {
+							console.log("data1", data, rowIndex, data[rowIndex], lobby);
+							return (
 							<div key={`cell-${rowIndex}-${colIndex}`} className="w-12 h-12 flex items-center justify-center mx-auto relative bg-cover" style={{backgroundImage: `url(https://raw.communitydragon.org/latest/game/assets/challenges/config/${globes_and_harmonies[colIndex][0]}/tokens/${data[rowIndex][colIndex].level.toLowerCase()}.png)`}}>
 				                  <span className="absolute bottom-0 right-0 text-xs font-semibold bg-white/70 px-1 rounded-bl-md rounded-tr-md">
 				                    {data[rowIndex][colIndex].value}
 				                  </span>
 							</div>
-						))}
+						);})}
 					</React.Fragment>
 				))}
 
