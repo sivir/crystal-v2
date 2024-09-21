@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { ArrowDown, ArrowUp, ArrowUpDown, BarChart, Bell, Check, Mail, Settings, User, X } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, Check, X } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -19,16 +19,6 @@ type RowData = {
 	checks: boolean[];
 };
 
-const iconColumns = [
-	{ icon: User, label: "User" },
-	{ icon: BarChart, label: "Chart" },
-	{ icon: Settings, label: "Settings" },
-	{ icon: Bell, label: "Notifications" },
-	{ icon: Mail, label: "Mail" }
-];
-
-const tracked_challenges = [];
-
 const default_mastery_data = {
 	championId: 0,
 	championLevel: 0,
@@ -44,9 +34,11 @@ const default_mastery_data = {
 };
 
 export default function Champions({ mastery_data, champion_map, lcu_challenge_data }: { mastery_data: MasteryData, champion_map: {[_: number]: ChampionSummaryItem}, lcu_challenge_data: LCUChallengeData }) {
-	const [visibleColumns, setVisibleColumns] = useState(iconColumns.map(() => true));
+	const tracked_challenges = useMemo(() => Object.keys(lcu_challenge_data).length > 1 ? [101301,120002,202303,210001,210002,401106,505001,602001,602002] : [], [lcu_challenge_data]);
+	const [visibleColumns, setVisibleColumns] = useState(tracked_challenges.map(() => true));
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [progressSortType, setProgressSortType] = useState<'leftAsc' | 'leftDesc' | 'progressAsc' | 'progressDesc'>('leftAsc');
+
 
 	const [data, setData] = useState<RowData[]>([]);
 
@@ -172,12 +164,12 @@ export default function Champions({ mastery_data, champion_map, lcu_challenge_da
 				</div>
 			)
 		},
-		...iconColumns.map((column, index) => ({
-			id: column.label,
+		...tracked_challenges.map((column, index) => ({
+			id: column.toString(),
 			accessorFn: (row: { checks: boolean[] }) => row.checks[index],
 			header: ({ column: tableColumn }: { column: Column<RowData> }) => (
 				<SortButton column={tableColumn}>
-					<column.icon size={16} />
+					<img src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/challenges/` + lcu_challenge_data[column].levelToIconPath[lcu_challenge_data[column].currentLevel].substring(40).toLowerCase()} alt="icon" className="w-6 h-6"/>
 				</SortButton>
 			),
 			cell: ({ row }: { row: Row<RowData> }) => (
@@ -208,7 +200,7 @@ export default function Champions({ mastery_data, champion_map, lcu_challenge_da
 			<div className="mb-4">
 				<h2 className="text-lg font-semibold mb-2">Show/Hide Columns</h2>
 				<div className="flex flex-wrap gap-4">
-					{iconColumns.map((column, index) => (
+					{tracked_challenges.map((column, index) => (
 						<div key={index} className="flex items-center space-x-2">
 							<Checkbox
 								id={`column-${index}`}
@@ -219,8 +211,8 @@ export default function Champions({ mastery_data, champion_map, lcu_challenge_da
 								htmlFor={`column-${index}`}
 								className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
 							>
-								<column.icon className="inline-block mr-1" size={16} />
-								{column.label}
+								{/*<column.icon className="inline-block mr-1" size={16} />*/}
+								{lcu_challenge_data[column].name}
 							</label>
 						</div>
 					))}
@@ -232,9 +224,9 @@ export default function Champions({ mastery_data, champion_map, lcu_challenge_da
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id}>
 								{headerGroup.headers.map((header) => {
-									const isIconColumn = iconColumns.some(col => col.label === header.id);
+									const isIconColumn = tracked_challenges.some(col => col.toString() === header.id);
 									return (
-										<TableHead key={header.id} className={`${isIconColumn ? 'px-0 w-[30px]' : 'px-2'}`}>
+										<TableHead key={header.id} className={`${isIconColumn ? 'px-0 w-[60px]' : 'px-2'}`}>
 											{header.isPlaceholder
 												? null
 												: flexRender(

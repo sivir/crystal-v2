@@ -2,8 +2,12 @@ export type LCUChallengeData = {
 	[id: number]: {
 		availableIds: number[];
 		capstoneGroupName: string;
+		currentLevel: string;
 		currentValue: number;
 		description: string;
+		levelToIconPath: {
+			[level: string]: string;
+		}
 		name: string;
 		thresholds: {
 			[level: string]: {
