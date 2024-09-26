@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Column, ColumnDef, flexRender, getCoreRowModel, getSortedRowModel, Row, SortingState, useReactTable } from "@tanstack/react-table";
 import { ChampionSummaryItem, LCUChallengeData, MasteryData } from "@/lib/types.ts";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip.tsx";
 
 type RowData = {
 	id: number;
@@ -34,7 +35,7 @@ const default_mastery_data = {
 };
 
 export default function Champions({ mastery_data, champion_map, lcu_challenge_data }: { mastery_data: MasteryData, champion_map: {[_: number]: ChampionSummaryItem}, lcu_challenge_data: LCUChallengeData }) {
-	const tracked_challenges = useMemo(() => Object.keys(lcu_challenge_data).length > 1 ? [101301,120002,202303,210001,210002,401106,505001,602001,602002] : [], [lcu_challenge_data]);
+	const tracked_challenges = [101301,120002,202303,210001,210002,401106,505001,602001,602002];
 	const [visibleColumns, setVisibleColumns] = useState(tracked_challenges.map(() => true));
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [progressSortType, setProgressSortType] = useState<'leftAsc' | 'leftDesc' | 'progressAsc' | 'progressDesc'>('leftAsc');
@@ -46,7 +47,6 @@ export default function Champions({ mastery_data, champion_map, lcu_challenge_da
 		setData(Object.entries(champion_map).map(([key, value]) => {
 			const current_champion_mastery = mastery_data.find((mastery) => mastery.championId === parseInt(key)) || default_mastery_data;
 			const grades = Object.entries(current_champion_mastery.nextSeasonMilestone.requireGradeCounts).flatMap(([key, value]) => Array(value).fill(key));
-			//console.log(grades);
 			return {
 				id: parseInt(key),
 				name: value.name,
@@ -168,9 +168,19 @@ export default function Champions({ mastery_data, champion_map, lcu_challenge_da
 			id: column.toString(),
 			accessorFn: (row: { checks: boolean[] }) => row.checks[index],
 			header: ({ column: tableColumn }: { column: Column<RowData> }) => (
-				<SortButton column={tableColumn}>
-					<img src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/challenges/` + lcu_challenge_data[column].levelToIconPath[lcu_challenge_data[column].currentLevel].substring(40).toLowerCase()} alt="icon" className="w-6 h-6"/>
-				</SortButton>
+				<TooltipProvider>
+					<Tooltip>
+						<TooltipTrigger>
+							<SortButton column={tableColumn}>
+								<img src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/challenges/` + lcu_challenge_data[column]?.levelToIconPath[lcu_challenge_data[column].currentLevel].substring(40).toLowerCase() || ""} alt="icon" className="w-6 h-6"/>
+							</SortButton>
+						</TooltipTrigger>
+						<TooltipContent>
+							{`${(lcu_challenge_data[column]?.description)} (${lcu_challenge_data[column]?.currentValue} / ${lcu_challenge_data[column]?.thresholds["MASTER"].value})`}
+						</TooltipContent>
+					</Tooltip>
+				</TooltipProvider>
+
 			),
 			cell: ({ row }: { row: Row<RowData> }) => (
 				<div className="flex justify-center">
@@ -182,7 +192,7 @@ export default function Champions({ mastery_data, champion_map, lcu_challenge_da
 				</div>
 			)
 		}))
-	], [progressSortType]);
+	], [progressSortType, lcu_challenge_data]);
 
 	const table = useReactTable({
 		data,
@@ -196,7 +206,7 @@ export default function Champions({ mastery_data, champion_map, lcu_challenge_da
 	});
 
 	return (
-		<div className="container mx-auto py-10">
+		 <div className="container mx-auto">
 			<div className="mb-4">
 				<h2 className="text-lg font-semibold mb-2">Show/Hide Columns</h2>
 				<div className="flex flex-wrap gap-4">
@@ -211,13 +221,13 @@ export default function Champions({ mastery_data, champion_map, lcu_challenge_da
 								htmlFor={`column-${index}`}
 								className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
 							>
-								{/*<column.icon className="inline-block mr-1" size={16} />*/}
-								{lcu_challenge_data[column].name}
+								{lcu_challenge_data[column]?.name || "loading"}
 							</label>
 						</div>
 					))}
 				</div>
 			</div>
+			 {lcu_challenge_data ?
 			<div className="rounded-md border">
 				<Table>
 					<TableHeader>
@@ -259,7 +269,7 @@ export default function Champions({ mastery_data, champion_map, lcu_challenge_da
 						)}
 					</TableBody>
 				</Table>
-			</div>
+			</div> : <></>}
 		</div>
 	);
 }

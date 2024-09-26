@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { listen } from "@tauri-apps/api/event";
 import { Button } from "@/components/ui/button";
-import { Bug, FlaskConical, Globe, HomeIcon, LayoutDashboard, Minus, Square, Users, X, UserSearch } from "lucide-react";
+import { Bug, FlaskConical, Globe, HomeIcon, LayoutDashboard, Minus, Square, Users, X, UserSearch, Flame } from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
 
 import Debug from "@/debug.tsx";
@@ -15,6 +15,7 @@ import { ChampionSummary, ChampionSummaryItem, default_riot_challenge_data, LCUC
 import TeamBuilder from "@/team_builder.tsx";
 import Lobby from "@/lobby.tsx";
 import Profile from "@/search.tsx";
+import Eternals from "@/eternals.tsx";
 
 "use client";
 
@@ -29,6 +30,7 @@ export default function Layout() {
 	const [riot_challenge_data, setRiotChallengeData] = useState<RiotChallengeData>(default_riot_challenge_data);
 	const [mastery_data, setMasteryData] = useState<MasteryData>([]);
 	const [champion_map, setChampionMap] = useState<{[id: number]: ChampionSummaryItem}>({});
+	const [gameflow_phase, setGameflowPhase] = useState<string>("");
 	const [riot_id, setRiotId] = useState<string[]>([]);
 
 	function update_lobby(puuids: string[]) {
@@ -46,11 +48,19 @@ export default function Layout() {
 			update_lobby(puuids);
 		});
 
-		const unlisten = listen("lobby", (event) => {
+		const unlisten_lobby = listen("lobby", (event) => {
 			const event_puuids = event.payload as string[];
 			if (JSON.stringify(event_puuids) !== JSON.stringify(lobby_puuids)) {
 				update_lobby(event_puuids);
 			}
+		});
+
+		invoke("lcu_get_request", { url: "/lol-gameflow/v1/gameflow-phase" }).then(x => {
+			setGameflowPhase(x as string);
+		});
+
+		const unlisten_gameflow = listen("gameflow", (event) => {
+			setGameflowPhase(event.payload as string);
 		});
 
 		invoke("lcu_get_request", { url: "/lol-challenges/v1/challenges/local-player" }).then(x => {
@@ -77,7 +87,8 @@ export default function Layout() {
 		});
 
 		return () => {
-			unlisten.then(f => f());
+			unlisten_lobby.then(f => f());
+			unlisten_gameflow.then(f => f());
 		};
 	}, []);
 
@@ -86,6 +97,7 @@ export default function Layout() {
 		{ icon: UserSearch, text: 'Summoner Lookup', id: 'search' },
 		{ icon: LayoutDashboard, text: 'Lobby', id: 'lobby' },
 		{ icon: Users, text: 'Champions', id: 'champions' },
+		{ icon: Flame, text: 'Eternals', id: 'eternals' },
 		{ icon: Globe, text: 'Team Builder', id: 'globes' },
 		{ icon: FlaskConical, text: 'Testing', id: 'test' },
 		{ icon: Bug, text: 'Debug', id: 'help' }
@@ -160,14 +172,15 @@ export default function Layout() {
 				{/*</main>*/}
 				<main className="flex-1 overflow-y-auto p-4">
 					<div style={{ display: page === 'home' ? "" : "none" }}><Dashboard riot_id={riot_id} lcu_challenge_data={lcu_challenge_data} riot_challenge_data={riot_challenge_data} setPage={setPage} /></div>
-					<div style={{ display: page === 'search' ? "" : "none" }}><Profile supabase={supabase} lcu_challenge_data={lcu_challenge_data}/></div>
+					<div style={{ display: page === 'search' ? "" : "none" }}><Profile supabase={supabase} lcu_challenge_data={lcu_challenge_data} /></div>
 					<div style={{ display: page === 'lobby' ? "" : "none" }}><Lobby lobby={lobby} supabase={supabase} lcu_challenge_data={lcu_challenge_data} /></div>
-					<div style={{ display: page === 'test' ? "" : "none" }}><Testing /></div>
 					<div style={{ display: page === 'champions' ? "" : "none" }}><Champions mastery_data={mastery_data} champion_map={champion_map} lcu_challenge_data={lcu_challenge_data} /></div>
+					<div style={{ display: page === 'eternals' ? "" : "none" }}><Eternals champion_map={champion_map}/></div>
 					<div style={{ display: page === 'globes' ? "" : "none" }}><TeamBuilder champion_map={champion_map} lcu_challenge_data={lcu_challenge_data} /></div>
-					<div style={{ display: page === 'help' ? "" : "none" }}><Debug lobby={lobby} /></div>
+					<div style={{ display: page === 'test' ? "" : "none" }}><Testing /></div>
+					<div style={{ display: page === 'help' ? "" : "none" }}><Debug lobby={lobby} gameflow_phase={gameflow_phase} champion_map={champion_map} /></div>
 				</main>
 			</div>
 		</div>
-);
+	);
 }

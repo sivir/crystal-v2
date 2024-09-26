@@ -24,7 +24,7 @@ export default function Lobby({ lobby, supabase, lcu_challenge_data }: { lobby: 
 	const [data, setData] = useState<LobbyChallenge[][]>([[]]);
 	const globes_and_harmonies = useMemo(() => Object.entries(lcu_challenge_data).filter(([, value]) => is_globe_or_harmony(value)), [lcu_challenge_data]);
 
-	useEffect(() => {
+	useMemo(() => {
 		console.log("lobby change:" + lobby);
 		Promise.all(lobby.map(riot_id =>
 			supabase.functions.invoke("get-user", { body: { riot_id } }).then(({ data }) => {
@@ -48,6 +48,10 @@ export default function Lobby({ lobby, supabase, lcu_challenge_data }: { lobby: 
 	}, [JSON.stringify(lobby), lcu_challenge_data]);
 
 	useEffect(() => {
+		console.log("normal lobby hook:", lobby);
+	}, [lobby]);
+
+	useEffect(() => {
 		console.log("Data after update:", data);
 	}, [data]);
 
@@ -64,7 +68,9 @@ export default function Lobby({ lobby, supabase, lcu_challenge_data }: { lobby: 
 					<div key={`header-${index}`}></div> // Empty div to maintain grid structure
 				))}
 
-				{lobby.map((name, rowIndex) => (
+				{lobby.map((name, rowIndex) => {
+					console.log(lobby);
+					return (
 					<React.Fragment key={`row-${rowIndex}`}>
 						<div className="font-semibold">{name}</div>
 						{sortedIndices.map(colIndex => {
@@ -76,7 +82,7 @@ export default function Lobby({ lobby, supabase, lcu_challenge_data }: { lobby: 
 							</div>
 						);})}
 					</React.Fragment>
-				))}
+				)})}
 
 				<div className="font-semibold">Progression</div>
 				{sortedIndices.map(colIndex => (

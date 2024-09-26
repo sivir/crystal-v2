@@ -125,10 +125,8 @@ export default function Profile({ supabase, lcu_challenge_data }: { supabase: Su
 	const [compare_user, setCompareUser] = useState("");
 	const [compare_user_data, setCompareUserData] = useState<{ riot_data: RiotChallengeData }>({ riot_data: default_riot_challenge_data });
 	const [data, setData] = useState<any[]>([]);
-	//const [compareUser, setCompareUser] = useState("");
 	const [challenge_search, setChallengeSearch] = useState("");
 	const isComparing = useMemo(() => compare_user !== "", [compare_user]);
-	//const [isComparing, setIsComparing] = useState(false);
 	const [categories, setCategories] = useState<string[]>([]);
 	const [current_filters, setCurrentFilters] = useState([]);
 	const [filters, setFilters] = useState({
@@ -253,14 +251,14 @@ export default function Profile({ supabase, lcu_challenge_data }: { supabase: Su
 						</div>
 						<div>
 							<label htmlFor="taskSearch" className="text-sm font-medium text-gray-700 mb-1 block">
-								Search Tasks
+								Search Challenges
 							</label>
 							<div className="relative">
 								<Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
 								<Input
 									id="taskSearch"
 									type="text"
-									placeholder="Search tasks..."
+									placeholder="Search challenges..."
 									value={challenge_search}
 									onChange={(e) => setChallengeSearch(e.target.value)}
 									className="pl-8"
@@ -337,7 +335,7 @@ export default function Profile({ supabase, lcu_challenge_data }: { supabase: Su
 				loading
 			</div> : (
 				<div className="text-center text-gray-500 mt-8">
-					Please select a user to view tasks.
+					select a user to view challenges
 				</div>
 			)}
 		</div>

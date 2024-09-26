@@ -96,7 +96,7 @@ export default function TeamBuilder({ champion_map, lcu_challenge_data }: { cham
 													</SelectTrigger>
 													<SelectContent>
 														{category.subCategories.map((subCategory: string) => (
-															<SelectItem value={subCategory}>{subCategory}</SelectItem>
+															<SelectItem key={subCategory} value={subCategory}>{subCategory}</SelectItem>
 														))}
 													</SelectContent>
 												</Select>

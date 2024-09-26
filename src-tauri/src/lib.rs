@@ -34,19 +34,6 @@ async fn lcu_help(state: TauriState<'_>) -> Result<Value, String> {
 }
 
 #[tauri::command]
-async fn get_challenge_data(state: TauriState<'_>) -> Result<Value, String> {
-	let data = state.lock().await;
-	let lcu_client = &data.lcu_client;
-	let request_client = &data.request_client;
-
-	let json: Result<Option<Value>, Error> = lcu_client.get("/lol-champ-select/v1/session", request_client).await;
-	match json {
-		Ok(Some(json)) => Ok(json),
-		_ => Ok(Value::Null),
-	}
-}
-
-#[tauri::command]
 async fn lcu_get_request(state: TauriState<'_>, url: String) -> Result<Value, String> {
 	let data = state.lock().await;
 	let lcu_client = &data.lcu_client;
@@ -119,15 +106,26 @@ async fn ws_init(state: TauriState<'_>, app_handle: AppHandle) -> Result<(), Str
 		}
 	}
 
-	struct EventHandler;
-	impl Subscriber for EventHandler {
+	struct GameflowEventHandler {
+		app_handle: AppHandle
+	}
+
+	impl Subscriber for GameflowEventHandler {
 		fn on_event(&mut self, event: &Event, _: &mut bool) {
-			//println!("{:?}", event);
+			self.app_handle.emit("gameflow", event.2.data.clone()).unwrap();
 		}
 	}
 
-	ws_client.subscribe(EventKind::JsonApiEventCallback("/lol-gameflow/v1/session".to_string()), EventHandler).unwrap();
-	ws_client.subscribe(EventKind::JsonApiEventCallback("/lol-lobby/v2/lobby".to_string()), LobbyEventHandler { app_handle, lobby_members: Vec::new() }).unwrap();
+	struct EventHandler;
+	impl Subscriber for EventHandler {
+		fn on_event(&mut self, event: &Event, _: &mut bool) {
+			println!("{:?}", event);
+		}
+	}
+
+	//ws_client.subscribe(EventKind::JsonApiEventCallback("/lol-gameflow/v1/session".to_string()), EventHandler).unwrap();
+	ws_client.subscribe(EventKind::JsonApiEventCallback("/lol-gameflow/v1/gameflow-phase".to_string()), GameflowEventHandler { app_handle: app_handle.clone() }).unwrap();
+	ws_client.subscribe(EventKind::JsonApiEventCallback("/lol-lobby/v2/lobby".to_string()), LobbyEventHandler { app_handle: app_handle.clone(), lobby_members: Vec::new() }).unwrap();
 
 	Ok(())
 }

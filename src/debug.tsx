@@ -2,8 +2,9 @@ import { invoke } from "@tauri-apps/api/core";
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input.tsx";
 import { useState } from "react";
+import { ChampionSummaryItem } from "@/lib/types.ts";
 
-export default function Debug({ lobby }: { lobby: string[] }) {
+export default function Debug({ lobby, gameflow_phase, champion_map }: { lobby: string[], gameflow_phase: string, champion_map: { [_: number]: ChampionSummaryItem } }) {
 	const [value, setValue] = useState("");
 
 	return <>
@@ -12,10 +13,21 @@ export default function Debug({ lobby }: { lobby: string[] }) {
 			<Button onClick={() => {
 				invoke("lcu_post_request", { url: "/lol-challenges/v1/update-player-preferences", body: { "challengeIds": [301103, 301103, 301103] } }).then(x => console.log(x));
 			}}>set buttons</Button>
+			<Button onClick={() => {
+				console.log(champion_map);
+				Object.keys(champion_map).map(key => {
+					console.log("sending " + key);
+					invoke("lcu_get_request", { url: `/lol-statstones/v2/player-statstones-self/${key}` }).then(x => console.log(key, x));
+				});
+			}}>eternals data</Button>
 			<Input placeholder="get request url" onChange={e => setValue(e.target.value)}/>
 			<Button onClick={() => invoke("lcu_get_request", { url: value }).then(x => console.log(x))}>get request</Button>
 		</div>
 
 		lobby: {lobby}
+		<br />
+		gameflow: {gameflow_phase}
+		<br />
+		champion map: {JSON.stringify(champion_map)}
 	</>
 }
