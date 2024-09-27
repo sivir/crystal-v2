@@ -34,6 +34,7 @@ type EternalsData = {
 	statstones: {
 		description: string;
 		formattedValue: string;
+		isRetired: boolean;
 		name: string;
 		playerRecord: {
 			value: number;
@@ -92,7 +93,7 @@ export default function Component({ champion_map }: { champion_map: { [_: number
 					series: eternals_data.map((eternal) => {
 						return {
 							name: eternal.name,
-							eternals: eternal.stonesOwned === 0 ? [] : eternal.statstones.map((statstone, index) => {
+							eternals: eternal.stonesOwned === 0 ? [] : eternal.statstones.filter(x => !x.isRetired).map((statstone, index) => {
 								//.log(eternals_map_data);
 								return {
 									description: statstone.description,
@@ -134,17 +135,24 @@ export default function Component({ champion_map }: { champion_map: { [_: number
 							</div>
 							<Progress
 								value={calculateTotalProgress(row.original.series[index].eternals)}
-								className="w-full h-1"
+								className="w-full h-2"
 							/>
 						</div>
 						{row.original.series[index].eternals.map((item) => (
 							<div key={item.name} className="space-y-1">
 								<div className="flex items-center justify-between text-sm">
 									<span>{item.name}</span>
-									<span>{item.value}/{item.max}</span>
+									<span>{Intl.NumberFormat('en-US', {
+										notation: "compact",
+										maximumFractionDigits: 1
+									}).format(item.value)} / {Intl.NumberFormat('en-US', {
+										notation: "compact",
+										maximumFractionDigits: 1
+									}).format(item.max)}</span>
+									{/*<span>{item.value}/{item.max}</span>*/}
 								</div>
 								<div className="flex items-center space-x-2">
-									<Progress value={item.value / item.max * 100} /*max={item.max}*/ className="w-full h-1" />
+									<Progress value={item.value / item.max * 100} /*max={item.max}*/ className="w-full h-2" />
 									<Tooltip>
 										<TooltipTrigger>
 											<HelpCircle className="h-4 w-4 text-muted-foreground" />

@@ -17,3 +17,4 @@ special thanks to sylv for help with [irelia](https://github.com/AlsoSylv/irelia
 - add counts to team builder
 - eternals up to 15 (math with 10x the 5th milestone count)
 - eternals challenge and roles per champion
+- potential issue if people have eternals finished on legacy eternals
