@@ -93,15 +93,26 @@ export default function Component({ champion_map }: { champion_map: { [_: number
 					series: eternals_data.map((eternal) => {
 						return {
 							name: eternal.name,
-							eternals: eternal.stonesOwned === 0 ? [] : eternal.statstones.filter(x => !x.isRetired).map((statstone, index) => {
-								//.log(eternals_map_data);
-								return {
+							eternals: eternal.stonesOwned === 0 ? [] :
+							// 	eternal.statstones.filter(x => !x.isRetired).map((statstone, index) => {
+							// 	//.log(eternals_map_data);
+							// 	return {
+							// 		description: statstone.description,
+							// 		name: statstone.name,
+							// 		value: statstone.playerRecord.value,
+							// 		formatted_value: statstone.formattedValue,
+							// 		max: eternals_map_data.find(x => x.itemId === eternal.itemId)?.statstones[index].milestones.slice(0, 5).reduce((x, y) => x + y, 0) ?? 1
+							// 	};
+							// })
+							eternal.statstones.flatMap((statstone, index) => {
+								if (statstone.isRetired) return [];
+								else return [{
 									description: statstone.description,
-									name: statstone.name,
-									value: statstone.playerRecord.value,
-									formatted_value: statstone.formattedValue,
-									max: eternals_map_data.find(x => x.itemId === eternal.itemId)?.statstones[index].milestones.slice(0, 5).reduce((x, y) => x + y, 0) ?? 1
-								};
+											name: statstone.name,
+											value: statstone.playerRecord.value,
+											formatted_value: statstone.formattedValue,
+											max: eternals_map_data.find(x => x.itemId === eternal.itemId)?.statstones[index].milestones.slice(0, 5).reduce((x, y) => x + y, 0) ?? 1
+								}];
 							})
 						};
 					})
@@ -121,7 +132,10 @@ export default function Component({ champion_map }: { champion_map: { [_: number
 			{
 				accessorKey: "name",
 				header: "Name",
-				cell: ({ row }: { row: { original: { name: string } } }) => <div>{row.original.name}</div>
+				cell: ({ row }: { row: { original: { name: string, id: string } } }) => <div className="flex flex-col">
+					<div>{row.original.name}</div>
+					<div className="text-sm text-gray-500">{champion_map[parseInt(row.original.id)].roles}</div>
+				</div>
 			},
 			...row_data[0].series.map((metric, index) => ({
 				accessorKey: `series.${index}.name`,

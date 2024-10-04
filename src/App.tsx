@@ -1,5 +1,5 @@
 import "./App.css";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { listen } from "@tauri-apps/api/event";
 import { Button } from "@/components/ui/button";
@@ -32,6 +32,10 @@ export default function Layout() {
 	const [champion_map, setChampionMap] = useState<{[id: number]: ChampionSummaryItem}>({});
 	const [gameflow_phase, setGameflowPhase] = useState<string>("");
 	const [riot_id, setRiotId] = useState<string[]>([]);
+
+	const data_loaded = useMemo(() => {
+		return mastery_data.length > 0 && Object.keys(champion_map).length > 0 && Object.keys(lcu_challenge_data).length > 0 && riot_challenge_data.challenges.length > 0;
+	},	[mastery_data, champion_map, lcu_challenge_data, riot_challenge_data]);
 
 	function update_lobby(puuids: string[]) {
 		setLobbyPUUIDs(puuids);
@@ -134,6 +138,7 @@ export default function Layout() {
 					<span className="sr-only">Close</span>
 				</Button>
 			</div>
+			{!data_loaded ? <>loading</> : <>
 			<aside className="fixed top-0 left-0 z-40 w-64 h-screen">
 				<div className="h-full px-3 py-4 overflow-y-auto bg-gray-50 dark:bg-gray-800">
 					<div className="flex items-center pl-2.5 mb-5">
@@ -162,14 +167,6 @@ export default function Layout() {
 
 			<div className="flex-1 ml-64 flex flex-col h-screen">
 				<div className="h-16 flex flex-col justify-between px-4" data-tauri-drag-region="true" />
-				{/*<main className="flex-1 overflow-y-auto p-4">*/}
-				{/*	{page === 'home' && <Dashboard riot_id={riot_id} lcu_challenge_data={lcu_challenge_data} riot_challenge_data={riot_challenge_data} setPage={setPage}/>}*/}
-				{/*	{page === 'test' && <Testing />}*/}
-				{/*	{page === 'lobby' && <Lobby lobby={lobby} supabase={supabase}/>}*/}
-				{/*	{page === 'champions' && <Champions mastery_data={mastery_data} champion_map={champion_map}/>}*/}
-				{/*	{page === 'globes' && <TeamBuilder champion_map={champion_map} lcu_challenge_data={lcu_challenge_data} />}*/}
-				{/*	{page === 'help' && <Debug lobby={lobby} />}*/}
-				{/*</main>*/}
 				<main className="flex-1 overflow-y-auto p-4">
 					<div style={{ display: page === 'home' ? "" : "none" }}><Dashboard riot_id={riot_id} lcu_challenge_data={lcu_challenge_data} riot_challenge_data={riot_challenge_data} setPage={setPage} /></div>
 					<div style={{ display: page === 'search' ? "" : "none" }}><Profile supabase={supabase} lcu_challenge_data={lcu_challenge_data} /></div>
@@ -180,7 +177,7 @@ export default function Layout() {
 					<div style={{ display: page === 'test' ? "" : "none" }}><Testing /></div>
 					<div style={{ display: page === 'help' ? "" : "none" }}><Debug lobby={lobby} gameflow_phase={gameflow_phase} champion_map={champion_map} /></div>
 				</main>
-			</div>
+			</div></>}
 		</div>
 	);
 }

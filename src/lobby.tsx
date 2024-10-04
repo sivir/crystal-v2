@@ -68,16 +68,15 @@ export default function Lobby({ lobby, supabase, lcu_challenge_data }: { lobby: 
 					<div key={`header-${index}`}></div> // Empty div to maintain grid structure
 				))}
 
-				{lobby.map((name, rowIndex) => {
-					console.log(lobby);
+				{data.map((row, rowIndex) => {
 					return (
 					<React.Fragment key={`row-${rowIndex}`}>
-						<div className="font-semibold">{name}</div>
+						<div className="font-semibold">{lobby[rowIndex]}</div>
 						{sortedIndices.map(colIndex => {
 							return (
-							<div key={`cell-${rowIndex}-${colIndex}`} className="w-12 h-12 flex items-center justify-center mx-auto relative bg-cover" style={{backgroundImage: `url(https://raw.communitydragon.org/latest/game/assets/challenges/config/${globes_and_harmonies[colIndex][0]}/tokens/${data[rowIndex][colIndex].level.toLowerCase()}.png)`}}>
+							<div key={`cell-${rowIndex}-${colIndex}`} className="w-12 h-12 flex items-center justify-center mx-auto relative bg-cover" style={{backgroundImage: `url(https://raw.communitydragon.org/latest/game/assets/challenges/config/${globes_and_harmonies[colIndex][0]}/tokens/${row[colIndex].level.toLowerCase()}.png)`}}>
 				                  <span className="absolute bottom-0 right-0 text-xs font-semibold bg-white/70 px-1 rounded-bl-md rounded-tr-md">
-				                    {data[rowIndex][colIndex].value}
+				                    {row[colIndex].value}
 				                  </span>
 							</div>
 						);})}
