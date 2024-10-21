@@ -215,8 +215,8 @@ export default function Dashboard() {
 		},
 		...iconColumns.map((column, index) => ({
 			id: column.label,
-			accessorFn: (row) => row.checks[index],
-			header: ({ column: tableColumn }) => (
+			accessorFn: (row: {checks: boolean[]}) => row.checks[index],
+			header: ({ column: tableColumn }: {column: any}) => (
 				<TooltipProvider>
 					<Tooltip>
 						<TooltipTrigger asChild>
@@ -230,7 +230,7 @@ export default function Dashboard() {
 					</Tooltip>
 				</TooltipProvider>
 			),
-			cell: ({ row }) => (
+			cell: ({ row }: {row: {original: {checks: boolean[]}}}) => (
 				<div className="flex justify-center">
 					{row.original.checks[index] ? (
 						<Check size={16} className="text-green-500" />

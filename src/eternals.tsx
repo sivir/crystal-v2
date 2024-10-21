@@ -155,8 +155,8 @@ export default function Component({ champion_map }: { champion_map: { [_: number
 						{row.original.series[index].eternals.map((item) => (
 							<div key={item.name} className="space-y-1">
 								<div className="flex items-center justify-between text-sm">
-									<span>{item.name}</span>
-									<span>{Intl.NumberFormat('en-US', {
+									<span className="overflow-ellipsis whitespace-nowrap">{item.name}</span>
+									<span className="whitespace-nowrap">{Intl.NumberFormat('en-US', {
 										notation: "compact",
 										maximumFractionDigits: 1
 									}).format(item.value)} / {Intl.NumberFormat('en-US', {
@@ -172,7 +172,7 @@ export default function Component({ champion_map }: { champion_map: { [_: number
 											<HelpCircle className="h-4 w-4 text-muted-foreground" />
 										</TooltipTrigger>
 										<TooltipContent>
-											<p>{item.description}</p>
+											<p>{item.description} ({item.formatted_value})</p>
 										</TooltipContent>
 									</Tooltip>
 								</div>

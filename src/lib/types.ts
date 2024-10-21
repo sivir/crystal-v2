@@ -2,6 +2,7 @@ export type LCUChallengeData = {
 	[id: number]: {
 		availableIds: number[];
 		capstoneGroupName: string;
+		completedIds: number[];
 		currentLevel: string;
 		currentValue: number;
 		description: string;
@@ -24,6 +25,9 @@ export type RiotChallengeData = {
 		max: number;
 		position: number;
 	},
+	playerPreferences: {
+
+	},
 	challenges: {
 		challengeId: number;
 		level: string;
@@ -38,6 +42,7 @@ export const default_riot_challenge_data: RiotChallengeData = {
 		max: 0,
 		position: 0
 	},
+	playerPreferences: {},
 	challenges: []
 };
 

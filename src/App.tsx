@@ -175,7 +175,7 @@ export default function Layout() {
 					<div style={{ display: page === 'eternals' ? "" : "none" }}><Eternals champion_map={champion_map}/></div>
 					<div style={{ display: page === 'globes' ? "" : "none" }}><TeamBuilder champion_map={champion_map} lcu_challenge_data={lcu_challenge_data} /></div>
 					<div style={{ display: page === 'test' ? "" : "none" }}><Testing /></div>
-					<div style={{ display: page === 'help' ? "" : "none" }}><Debug lobby={lobby} gameflow_phase={gameflow_phase} champion_map={champion_map} /></div>
+					<div style={{ display: page === 'help' ? "" : "none" }}><Debug lobby={lobby} gameflow_phase={gameflow_phase} champion_map={champion_map} riot_challenge_data={riot_challenge_data} /></div>
 				</main>
 			</div></>}
 		</div>

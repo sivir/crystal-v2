@@ -56,7 +56,7 @@ export default function Champions({ mastery_data, champion_map, lcu_challenge_da
 				next_progress: current_champion_mastery.championPointsUntilNextLevel,
 				icons: current_champion_mastery.tokensEarned,
 				circledLetters: grades.map((letter: string) => ({ letter: letter[0], filled: Math.random() < 0.5 })),
-				checks: Array.from({ length: 5 }, () => Math.random() > 0.5)
+				checks: tracked_challenges.map(x => lcu_challenge_data[x].completedIds.includes(parseInt(key)))
 			};
 		}));
 	}, [mastery_data]);

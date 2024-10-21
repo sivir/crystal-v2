@@ -7,24 +7,24 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Search, User, ArrowLeft, ArrowRight, X, Filter, ChevronDown, ChevronUp } from "lucide-react";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { default_riot_challenge_data, LCUChallengeData, RiotChallengeData } from "@/lib/types.ts";
-
-const tasksData = [
-	{
-		id: 1,
-		name: "Complete project proposal",
-		description: "Draft and finalize the project proposal document",
-		currentUserProgress: 75,
-		comparedUserProgress: 60,
-		category: "Planning",
-		subtasks: [
-			{ id: 'a', name: "Research market trends", progress: 100 },
-			{ id: 'b', name: "Define project scope", progress: 80 },
-			{ id: 'c', name: "Estimate resources", progress: 60 },
-			{ id: 'd', name: "Create timeline", progress: 40 },
-			{ id: 'e', name: "Draft proposal", progress: 20 }
-		]
-	}
-];
+//
+// const tasksData = [
+// 	{
+// 		id: 1,
+// 		name: "Complete project proposal",
+// 		description: "Draft and finalize the project proposal document",
+// 		currentUserProgress: 75,
+// 		comparedUserProgress: 60,
+// 		category: "Planning",
+// 		subtasks: [
+// 			{ id: 'a', name: "Research market trends", progress: 100 },
+// 			{ id: 'b', name: "Define project scope", progress: 80 },
+// 			{ id: 'c', name: "Estimate resources", progress: 60 },
+// 			{ id: 'd', name: "Create timeline", progress: 40 },
+// 			{ id: 'e', name: "Draft proposal", progress: 20 }
+// 		]
+// 	}
+// ];
 
 const ComparisonProgress = ({ currentProgress, comparedProgress }: { currentProgress: number, comparedProgress: number }) => {
 	const difference = currentProgress - comparedProgress;
@@ -50,16 +50,16 @@ const ComparisonProgress = ({ currentProgress, comparedProgress }: { currentProg
 	);
 };
 
-const TaskList = ({ tasks, showComparison }) => {
-	const [expandedTasks, setExpandedTasks] = useState({});
+const TaskList = ({ tasks, showComparison }: {tasks: any[], showComparison: boolean}) => {
+	const [expandedTasks, setExpandedTasks] = useState<{[index: string]: boolean}>({});
 
-	const toggleTaskExpansion = (taskId) => {
+	const toggleTaskExpansion = (taskId: string) => {
 		setExpandedTasks(prev => ({ ...prev, [taskId]: !prev[taskId] }));
 	};
 
 	return (
 		<div className="space-y-3 m-0.5">
-			{tasks.map((task) => (
+			{tasks.map((task: { id: string; current_level: string; name: string; description: string; category: string; subtasks: any[]; current_progression: number; comparedUserProgress: number; }) => (
 				<div key={task.id} className="bg-white shadow rounded-lg p-3">
 					<div className="flex items-center justify-between mb-2">
 						<div className="flex items-center">
@@ -127,8 +127,8 @@ export default function Profile({ supabase, lcu_challenge_data }: { supabase: Su
 	const [data, setData] = useState<any[]>([]);
 	const [challenge_search, setChallengeSearch] = useState("");
 	const isComparing = useMemo(() => compare_user !== "", [compare_user]);
-	const [categories, setCategories] = useState<string[]>([]);
-	const [current_filters, setCurrentFilters] = useState([]);
+	// const [categories, setCategories] = useState<string[]>([]);
+	// const [current_filters, setCurrentFilters] = useState([]);
 	const [filters, setFilters] = useState({
 		Development: { Planning: false, Development: false, Testing: false },
 		Documentation: { Documentation: false },
@@ -174,11 +174,13 @@ export default function Profile({ supabase, lcu_challenge_data }: { supabase: Su
 		}
 	}, [compare_user_data, lcu_challenge_data]);
 
-	const handleFilterChange = (category, subcategory) => {
+	const handleFilterChange = (category: string, subcategory: string) => {
 		setFilters(prev => ({
 			...prev,
 			[category]: {
+				// @ts-ignore
 				...prev[category],
+				// @ts-ignore
 				[subcategory]: !prev[category][subcategory]
 			}
 		}));
@@ -187,6 +189,7 @@ export default function Profile({ supabase, lcu_challenge_data }: { supabase: Su
 	const filtered_data = useMemo(() => {
 		return data.filter(challenge =>
 			(challenge.name.toLowerCase().includes(challenge_search.toLowerCase()) || challenge.description.toLowerCase().includes(challenge_search.toLowerCase())) &&
+			// @ts-ignore
 			(Object.values(filters).every(category => Object.values(category).every(v => !v)) || Object.values(filters).some(category => category[challenge.category]))
 		).sort((a, b) => {
 			if (sortBy === "name") return a.name.localeCompare(b.name);
