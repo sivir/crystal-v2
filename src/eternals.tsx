@@ -72,14 +72,16 @@ export default function Component({ champion_map }: { champion_map: { [_: number
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [row_data, setRowData] = useState<{ id: string, name: string, series: EternalsRowData[] }[]>([]);
 	const [eternals_map_data, setEternalsMapData] = useState<EternalsMapData>([]);
+	const roles = ["tank", "mage", "marksman", "fighter", "support", "assassin"];
+	const [selected_roles, setSelectedRoles] = useState<string[]>(roles);
 
-	useEffect(() => {
+	function load_eternals() {
 		invoke("http_request", { url: "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/en_gb/v1/statstones.json" }).then(x => {
 			const data = x as { statstoneData: EternalsMapData };
-			console.log("ed", data);
+			console.log("eternals_data", data);
 			setEternalsMapData(data.statstoneData);
 		});
-	}, []);
+	}
 
 	useEffect(() => {
 		if (eternals_map_data.length === 0) return;
@@ -191,11 +193,12 @@ export default function Component({ champion_map }: { champion_map: { [_: number
 	);
 
 	const filteredData = useMemo(() => {
+		const filtered_data = row_data.filter(champion => champion_map[parseInt(champion.id)].roles.some(role => selected_roles.includes(role)));
 		if (hideCompleteRows) {
-			return row_data.filter(champion => !champion.series.some(series => calculateTotalProgress(series.eternals) >= 100));
+			return filtered_data.filter(champion => !champion.series.some(series => calculateTotalProgress(series.eternals) >= 100));
 		}
-		return row_data;
-	}, [hideCompleteRows, row_data]);
+		return filtered_data;
+	}, [hideCompleteRows, row_data, selected_roles]);
 
 	const table = useReactTable({
 		data: filteredData,
@@ -212,6 +215,7 @@ export default function Component({ champion_map }: { champion_map: { [_: number
 		<TooltipProvider>
 			{/*{row_data.length > 0 && row_data.filter(champion => champion.series.length > 0).length < Object.keys(champion_map).length ? <>loading eternals data ({row_data.filter(champion => champion.series.length > 0).length} / {Object.keys(champion_map).length})</> :*/}
 			<div className="space-y-4 p-8">
+				<Button onClick={load_eternals}>Load Eternals</Button>
 				<div className="flex items-center space-x-2">
 					<Checkbox
 						id="hide-complete"
@@ -219,6 +223,17 @@ export default function Component({ champion_map }: { champion_map: { [_: number
 						onCheckedChange={x => setHideCompleteRows(x === true)}
 					/>
 					<Label htmlFor="hide-complete">Hide rows with complete cells</Label>
+				</div>
+				<div className="flex items-center space-x-2">
+					{roles.map(role => (
+						<><Checkbox
+							key={role}
+							id={role}
+							checked={selected_roles.includes(role)}
+							onCheckedChange={x => setSelectedRoles(prev => x ? [...prev, role] : prev.filter(y => y !== role))}
+						/>
+						<Label htmlFor={role}>{role}</Label></>
+					))}
 				</div>
 				<div className="rounded-md border">
 					<Table>

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Column, ColumnDef, flexRender, getCoreRowModel, getSortedRowModel, Row, SortingState, useReactTable } from "@tanstack/react-table";
 import { ChampionSummaryItem, LCUChallengeData, MasteryData } from "@/lib/types.ts";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip.tsx";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card.tsx";
 
 type RowData = {
 	id: number;
@@ -34,12 +35,15 @@ const default_mastery_data = {
 	tokensEarned: 0
 };
 
-export default function Champions({ mastery_data, champion_map, lcu_challenge_data }: { mastery_data: MasteryData, champion_map: {[_: number]: ChampionSummaryItem}, lcu_challenge_data: LCUChallengeData }) {
-	const tracked_challenges = [101301,120002,202303,210001,210002,401106,505001,602001,602002];
+export default function Champions({ mastery_data, champion_map, lcu_challenge_data }: { mastery_data: MasteryData, champion_map: { [_: number]: ChampionSummaryItem }, lcu_challenge_data: LCUChallengeData }) {
+	const tracked_challenges = [101301, 120002, 202303, 210001, 210002, 401106, 505001, 602001, 602002];
 	const [visibleColumns, setVisibleColumns] = useState(tracked_challenges.map(() => true));
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [progressSortType, setProgressSortType] = useState<'leftAsc' | 'leftDesc' | 'progressAsc' | 'progressDesc'>('leftAsc');
-
+	const mastery_challenges = [401101, 401102, 401103, 401104];
+	const classes = ["Assassin", "Fighter", "Mage", "Marksman", "Support", "Tank"];
+	const mastery_class_challenges_7 = [401201, 401202, 401203, 401204, 401205, 401206];
+	const mastery_class_challenges_10 = [401207, 401208, 401209, 401210, 401211, 401212];
 
 	const [data, setData] = useState<RowData[]>([]);
 
@@ -172,7 +176,9 @@ export default function Champions({ mastery_data, champion_map, lcu_challenge_da
 					<Tooltip>
 						<TooltipTrigger>
 							<SortButton column={tableColumn}>
-								<img src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/challenges/` + lcu_challenge_data[column]?.levelToIconPath[lcu_challenge_data[column].currentLevel].substring(40).toLowerCase() || ""} alt="icon" className="w-6 h-6"/>
+								<img
+									src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/challenges/` + lcu_challenge_data[column]?.levelToIconPath[lcu_challenge_data[column].currentLevel].substring(40).toLowerCase() || ""}
+									alt="icon" className="w-6 h-6" />
 							</SortButton>
 						</TooltipTrigger>
 						<TooltipContent>
@@ -206,7 +212,88 @@ export default function Champions({ mastery_data, champion_map, lcu_challenge_da
 	});
 
 	return (
-		 <div className="container mx-auto">
+		<div className="container mx-auto">
+			<div className="grid gap-4 md:grid-cols-2 mb-6">
+				<Card>
+					<CardHeader>
+						<CardTitle>System Resources</CardTitle>
+					</CardHeader>
+					<CardContent className="grid grid-cols-2 gap-4">
+						{mastery_challenges.map((resource, index) => (
+							<div key={index} className="space-y-2">
+								<div className="flex items-center justify-between">
+									<div className="flex items-center space-x-2">
+										<img
+											src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/challenges/` + lcu_challenge_data[resource]?.levelToIconPath[lcu_challenge_data[resource].currentLevel].substring(40).toLowerCase() || ""}
+											alt="icon" width={16} height={16} />
+										<p className="text-sm font-medium">{lcu_challenge_data[resource].name}</p>
+									</div>
+									<span className="text-sm font-medium">{lcu_challenge_data[resource].currentValue}</span>
+								</div>
+								<div className="relative">
+									<Progress value={lcu_challenge_data[resource].currentValue / lcu_challenge_data[resource].thresholds["MASTER"].value * 100} className="h-2" />
+									{/*			{Object.entries(lcu_challenge_data[resource].thresholds).map((notch, i) => (*/}
+									{/*				<div*/}
+									{/*					key={i}*/}
+									{/*					className="absolute top-0 w-px h-3 bg-primary-foreground"*/}
+									{/*					style={{ left: `${notch[1].value / lcu_challenge_data[resource].thresholds["MASTER"].value * 100}%` }}*/}
+									{/*				>*/}
+									{/*<span className="absolute top-4 left-1/2 transform -translate-x-1/2 text-xs text-muted-foreground">*/}
+									{/*  {notch[1].value}*/}
+									{/*</span>*/}
+									{/*				</div>*/}
+									{/*			))}*/}
+								</div>
+							</div>
+						))}
+					</CardContent>
+				</Card>
+				<Card>
+					<CardHeader>
+						<CardTitle>Project Progress</CardTitle>
+					</CardHeader>
+					<CardContent className="grid grid-cols-2 gap-4">
+						{Array.from({ length: 6 }).map((_, index) => {
+							const v1 = lcu_challenge_data[mastery_class_challenges_10[index]].currentValue;
+							const v2 = lcu_challenge_data[mastery_class_challenges_7[index]].currentValue - v1;
+							const masters_threshold = lcu_challenge_data[mastery_class_challenges_7[index]].thresholds["MASTER"].value;
+							if (masters_threshold != lcu_challenge_data[mastery_class_challenges_10[index]].thresholds["MASTER"].value) {
+								console.log("mismatched thresholds");
+							}
+							const class_champions = Object.values(champion_map).filter(champion => champion.roles.includes(classes[index].toLowerCase())).length;
+							return (
+								<div key={index} className="space-y-2">
+									<div className="flex items-center justify-between">
+										<p className="text-sm font-medium">{classes[index]} Mastery</p>
+										<TooltipProvider>
+											<Tooltip>
+												<TooltipTrigger asChild>
+													<span className="text-xs text-muted-foreground">
+														{v1} / {v2} / {masters_threshold} / {class_champions}
+													</span>
+												</TooltipTrigger>
+												<TooltipContent>
+													<span>m10: {v1} m7: {v2} masters threshold: {masters_threshold} total champs in class: {class_champions}</span>
+												</TooltipContent>
+											</Tooltip>
+										</TooltipProvider>
+									</div>
+									<div className="flex h-2 rounded-full overflow-hidden">
+										<div
+											className="bg-blue-500"
+											style={{ width: `${v1 / lcu_challenge_data[mastery_class_challenges_7[index]].thresholds["MASTER"].value * 100}%` }}
+										/>
+										<div
+											className="bg-green-500"
+											style={{ width: `${v2 / lcu_challenge_data[mastery_class_challenges_10[index]].thresholds["MASTER"].value * 100}%` }}
+										/>
+									</div>
+								</div>
+							);
+						})}
+					</CardContent>
+				</Card>
+			</div>
 			<div className="mb-4">
 				<h2 className="text-lg font-semibold mb-2">Show/Hide Columns</h2>
 				<div className="flex flex-wrap gap-4">
@@ -227,49 +314,49 @@ export default function Champions({ mastery_data, champion_map, lcu_challenge_da
 					))}
 				</div>
 			</div>
-			 {lcu_challenge_data ?
-			<div className="rounded-md border">
-				<Table>
-					<TableHeader>
-						{table.getHeaderGroups().map((headerGroup) => (
-							<TableRow key={headerGroup.id}>
-								{headerGroup.headers.map((header) => {
-									const isIconColumn = tracked_challenges.some(col => col.toString() === header.id);
-									return (
-										<TableHead key={header.id} className={`${isIconColumn ? 'px-0 w-[60px]' : 'px-2'}`}>
-											{header.isPlaceholder
-												? null
-												: flexRender(
-													header.column.columnDef.header,
-													header.getContext()
-												)}
-										</TableHead>
-									);
-								})}
-							</TableRow>
-						))}
-					</TableHeader>
-					<TableBody>
-						{table.getRowModel().rows?.length ? (
-							table.getRowModel().rows.map((row) => (
-								<TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
-									{row.getVisibleCells().map((cell) => (
-										<TableCell key={cell.id} className="px-2">
-											{flexRender(cell.column.columnDef.cell, cell.getContext())}
-										</TableCell>
-									))}
+			{lcu_challenge_data ?
+				<div className="rounded-md border">
+					<Table>
+						<TableHeader>
+							{table.getHeaderGroups().map((headerGroup) => (
+								<TableRow key={headerGroup.id}>
+									{headerGroup.headers.map((header) => {
+										const isIconColumn = tracked_challenges.some(col => col.toString() === header.id);
+										return (
+											<TableHead key={header.id} className={`${isIconColumn ? 'px-0 w-[60px]' : 'px-2'}`}>
+												{header.isPlaceholder
+													? null
+													: flexRender(
+														header.column.columnDef.header,
+														header.getContext()
+													)}
+											</TableHead>
+										);
+									})}
 								</TableRow>
-							))
-						) : (
-							<TableRow>
-								<TableCell colSpan={columns.length} className="h-24 text-center">
-									No results.
-								</TableCell>
-							</TableRow>
-						)}
-					</TableBody>
-				</Table>
-			</div> : <></>}
+							))}
+						</TableHeader>
+						<TableBody>
+							{table.getRowModel().rows?.length ? (
+								table.getRowModel().rows.map((row) => (
+									<TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+										{row.getVisibleCells().map((cell) => (
+											<TableCell key={cell.id} className="px-2">
+												{flexRender(cell.column.columnDef.cell, cell.getContext())}
+											</TableCell>
+										))}
+									</TableRow>
+								))
+							) : (
+								<TableRow>
+									<TableCell colSpan={columns.length} className="h-24 text-center">
+										No results.
+									</TableCell>
+								</TableRow>
+							)}
+						</TableBody>
+					</Table>
+				</div> : <></>}
 		</div>
 	);
 }
