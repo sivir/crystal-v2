@@ -8,6 +8,7 @@ import { Column, ColumnDef, flexRender, getCoreRowModel, getSortedRowModel, Row,
 import { ChampionSummaryItem, LCUChallengeData, MasteryData } from "@/lib/types.ts";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip.tsx";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card.tsx";
+import { format_number, format_number_comma, rank_index, rank_order } from "@/lib/utils.ts";
 
 type RowData = {
 	id: number;
@@ -36,8 +37,7 @@ const default_mastery_data = {
 };
 
 export default function Champions({ mastery_data, champion_map, lcu_challenge_data }: { mastery_data: MasteryData, champion_map: { [_: number]: ChampionSummaryItem }, lcu_challenge_data: LCUChallengeData }) {
-	const tracked_challenges = [101301, 120002, 202303, 210001, 210002, 401106, 505001, 602001, 602002];
-	const [visibleColumns, setVisibleColumns] = useState(tracked_challenges.map(() => true));
+	const tracked_challenges = [101301, 120002, 202303, 210001, 210002, 401106, 505001];
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [progressSortType, setProgressSortType] = useState<'leftAsc' | 'leftDesc' | 'progressAsc' | 'progressDesc'>('leftAsc');
 	const mastery_challenges = [401101, 401102, 401103, 401104];
@@ -64,10 +64,6 @@ export default function Champions({ mastery_data, champion_map, lcu_challenge_da
 			};
 		}));
 	}, [mastery_data]);
-
-	const toggleColumn = (index: number) => {
-		setVisibleColumns(prev => prev.map((value, i) => i === index ? !value : value));
-	};
 
 	const SortButton = ({ column, children }: { column: any; children: React.ReactNode }) => {
 		return (
@@ -216,9 +212,9 @@ export default function Champions({ mastery_data, champion_map, lcu_challenge_da
 			<div className="grid gap-4 md:grid-cols-2 mb-6">
 				<Card>
 					<CardHeader>
-						<CardTitle>System Resources</CardTitle>
+						<CardTitle>Mastery Challenges</CardTitle>
 					</CardHeader>
-					<CardContent className="grid grid-cols-2 gap-4">
+					<CardContent className="grid grid-cols-2 gap-x-4 gap-y-8">
 						{mastery_challenges.map((resource, index) => (
 							<div key={index} className="space-y-2">
 								<div className="flex items-center justify-between">
@@ -228,21 +224,18 @@ export default function Champions({ mastery_data, champion_map, lcu_challenge_da
 											alt="icon" width={16} height={16} />
 										<p className="text-sm font-medium">{lcu_challenge_data[resource].name}</p>
 									</div>
-									<span className="text-sm font-medium">{lcu_challenge_data[resource].currentValue}</span>
+									<span className="text-sm font-medium">{format_number_comma(lcu_challenge_data[resource].currentValue)}</span>
 								</div>
 								<div className="relative">
 									<Progress value={lcu_challenge_data[resource].currentValue / lcu_challenge_data[resource].thresholds["MASTER"].value * 100} className="h-2" />
-									{/*			{Object.entries(lcu_challenge_data[resource].thresholds).map((notch, i) => (*/}
-									{/*				<div*/}
-									{/*					key={i}*/}
-									{/*					className="absolute top-0 w-px h-3 bg-primary-foreground"*/}
-									{/*					style={{ left: `${notch[1].value / lcu_challenge_data[resource].thresholds["MASTER"].value * 100}%` }}*/}
-									{/*				>*/}
-									{/*<span className="absolute top-4 left-1/2 transform -translate-x-1/2 text-xs text-muted-foreground">*/}
-									{/*  {notch[1].value}*/}
-									{/*</span>*/}
-									{/*				</div>*/}
-									{/*			))}*/}
+									<div
+										className="absolute top-0 w-px h-3 bg-black"
+										style={{ left: `${lcu_challenge_data[resource].thresholds[rank_order[rank_index(lcu_challenge_data[resource].currentLevel) - 1]].value / lcu_challenge_data[resource].thresholds["MASTER"].value * 100}%` }}
+									>
+										<span className="absolute top-4 left-1/2 transform -translate-x-1/2 text-xs text-muted-foreground">
+											{format_number(lcu_challenge_data[resource].thresholds[rank_order[rank_index(lcu_challenge_data[resource].currentLevel) - 1]].value)}
+										</span>
+									</div>
 								</div>
 							</div>
 						))}
@@ -250,7 +243,7 @@ export default function Champions({ mastery_data, champion_map, lcu_challenge_da
 				</Card>
 				<Card>
 					<CardHeader>
-						<CardTitle>Project Progress</CardTitle>
+						<CardTitle>Mastery Class Challenges</CardTitle>
 					</CardHeader>
 					<CardContent className="grid grid-cols-2 gap-4">
 						{Array.from({ length: 6 }).map((_, index) => {
@@ -297,21 +290,26 @@ export default function Champions({ mastery_data, champion_map, lcu_challenge_da
 			<div className="mb-4">
 				<h2 className="text-lg font-semibold mb-2">Show/Hide Columns</h2>
 				<div className="flex flex-wrap gap-4">
-					{tracked_challenges.map((column, index) => (
-						<div key={index} className="flex items-center space-x-2">
-							<Checkbox
-								id={`column-${index}`}
-								checked={visibleColumns[index]}
-								onCheckedChange={() => toggleColumn(index)}
-							/>
-							<label
-								htmlFor={`column-${index}`}
-								className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-							>
-								{lcu_challenge_data[column]?.name || "loading"}
-							</label>
-						</div>
-					))}
+					{table.getAllLeafColumns().map(column => {
+						if (isNaN(parseInt(column.id))) {
+							return null;
+						}
+						return (
+							<div key={column.id} className="flex items-center space-x-2">
+								<Checkbox
+									id={`column-${column.id}`}
+									checked={column.getIsVisible()}
+									onCheckedChange={() => column.toggleVisibility()}
+								/>
+								<label
+									htmlFor={`column-${column.id}`}
+									className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+								>
+									{lcu_challenge_data[parseInt(column.id)]?.name || "loading"}
+								</label>
+							</div>
+						);
+					})}
 				</div>
 			</div>
 			{lcu_challenge_data ?

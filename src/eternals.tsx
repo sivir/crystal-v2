@@ -27,6 +27,7 @@ import {
 } from "@tanstack/react-table";
 import { ChampionSummaryItem } from "@/lib/types.ts";
 import { invoke } from "@tauri-apps/api/core";
+import { format_number } from "@/lib/utils.ts";
 
 type EternalsData = {
 	itemId: number;
@@ -158,14 +159,7 @@ export default function Component({ champion_map }: { champion_map: { [_: number
 							<div key={item.name} className="space-y-1">
 								<div className="flex items-center justify-between text-sm">
 									<span className="overflow-ellipsis whitespace-nowrap">{item.name}</span>
-									<span className="whitespace-nowrap">{Intl.NumberFormat('en-US', {
-										notation: "compact",
-										maximumFractionDigits: 1
-									}).format(item.value)} / {Intl.NumberFormat('en-US', {
-										notation: "compact",
-										maximumFractionDigits: 1
-									}).format(item.max)}</span>
-									{/*<span>{item.value}/{item.max}</span>*/}
+									<span className="whitespace-nowrap">{format_number(item.value)} / {format_number(item.max)}</span>
 								</div>
 								<div className="flex items-center space-x-2">
 									<Progress value={item.value / item.max * 100} /*max={item.max}*/ className="w-full h-2" />
