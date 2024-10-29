@@ -6,6 +6,8 @@ uses tauri, react, tailwind, shadcn, typescript, and v0
 
 special thanks to sylv for help with [irelia](https://github.com/AlsoSylv/irelia)
 
+![screenshot](screenshots/img.png)
+
 ## todo
 
 - [ ] set search filters
