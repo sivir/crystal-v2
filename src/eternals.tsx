@@ -210,13 +210,14 @@ export default function Component({ champion_map }: { champion_map: { [_: number
 			{/*{row_data.length > 0 && row_data.filter(champion => champion.series.length > 0).length < Object.keys(champion_map).length ? <>loading eternals data ({row_data.filter(champion => champion.series.length > 0).length} / {Object.keys(champion_map).length})</> :*/}
 			<div className="space-y-4 p-8">
 				<Button onClick={load_eternals}>Load Eternals</Button>
+				loading eternals is very expensive and time consuming, pls try not to close the app or reload before all eternals are loaded
 				<div className="flex items-center space-x-2">
 					<Checkbox
 						id="hide-complete"
 						checked={hideCompleteRows}
 						onCheckedChange={x => setHideCompleteRows(x === true)}
 					/>
-					<Label htmlFor="hide-complete">Hide rows with complete cells</Label>
+					<Label htmlFor="hide-complete">Hide champions with at least one rekindled eternal</Label>
 				</div>
 				<div className="flex items-center space-x-2">
 					{roles.map(role => (

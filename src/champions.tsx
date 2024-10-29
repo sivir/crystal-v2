@@ -13,12 +13,12 @@ import { format_number, format_number_comma, rank_index, rank_order } from "@/li
 type RowData = {
 	id: number;
 	name: string;
-	number: number;
-	progress: number;
+	level: number;
+	points: number;
 	prev_progress: number;
 	next_progress: number;
 	icons: number;
-	circledLetters: { letter: string; filled: boolean }[];
+	grades: { letter: string; filled: boolean }[];
 	checks: boolean[];
 };
 
@@ -38,8 +38,8 @@ const default_mastery_data = {
 
 export default function Champions({ mastery_data, champion_map, lcu_challenge_data }: { mastery_data: MasteryData, champion_map: { [_: number]: ChampionSummaryItem }, lcu_challenge_data: LCUChallengeData }) {
 	const tracked_challenges = [101301, 120002, 202303, 210001, 210002, 401106, 505001];
-	const [sorting, setSorting] = useState<SortingState>([]);
-	const [progressSortType, setProgressSortType] = useState<'leftAsc' | 'leftDesc' | 'progressAsc' | 'progressDesc'>('leftAsc');
+	const [sorting, setSorting] = useState<SortingState>([{id: "mastery", desc: true}]);
+	const [mastery_sort, setMasterySort] = useState<'level_asc' | 'level_desc' | 'points_asc' | 'points_desc'>('level_asc');
 	const mastery_challenges = [401101, 401102, 401103, 401104];
 	const classes = ["Assassin", "Fighter", "Mage", "Marksman", "Support", "Tank"];
 	const mastery_class_challenges_7 = [401201, 401202, 401203, 401204, 401205, 401206];
@@ -54,12 +54,12 @@ export default function Champions({ mastery_data, champion_map, lcu_challenge_da
 			return {
 				id: parseInt(key),
 				name: value.name,
-				number: current_champion_mastery.championLevel,
-				progress: current_champion_mastery.championPoints,
+				level: current_champion_mastery.championLevel,
+				points: current_champion_mastery.championPoints,
 				prev_progress: current_champion_mastery.championPointsSinceLastLevel,
 				next_progress: current_champion_mastery.championPointsUntilNextLevel,
 				icons: current_champion_mastery.tokensEarned,
-				circledLetters: grades.map((letter: string) => ({ letter: letter[0], filled: Math.random() < 0.5 })),
+				grades: grades.map((letter: string) => ({ letter: letter[0], filled: Math.random() < 0.5 })),
 				checks: tracked_challenges.map(x => lcu_challenge_data[x].completedIds.includes(parseInt(key)))
 			};
 		}));
@@ -86,49 +86,50 @@ export default function Champions({ mastery_data, champion_map, lcu_challenge_da
 			header: ({ column }) => <SortButton column={column}>Name</SortButton>
 		},
 		{
-			accessorFn: (row) => ({ left: row.number, progress: row.progress }),
-			id: "progress",
+			accessorFn: (row) => ({ level: row.level, points: row.points }),
+			id: "mastery",
 			header: ({ column }) => (
 				<Button
 					variant="ghost"
 					onClick={() => {
 						const nextSortType = {
-							leftAsc: 'leftDesc',
-							leftDesc: 'progressAsc',
-							progressAsc: 'progressDesc',
-							progressDesc: 'leftAsc'
-						}[progressSortType] as typeof progressSortType;
-						setProgressSortType(nextSortType);
-						column.toggleSorting(nextSortType.endsWith('Desc'));
+							level_asc: 'level_desc',
+							level_desc: 'points_asc',
+							points_asc: 'points_desc',
+							points_desc: 'level_asc'
+						}[mastery_sort] as typeof mastery_sort;
+						setMasterySort(nextSortType);
+						column.toggleSorting(nextSortType.endsWith('desc'));
 					}}
 					className="hover:bg-transparent pl-0 w-[150px] justify-start"
 				>
 					Mastery
-					{!column.getIsSorted() ? <ArrowUpDown className="ml-2 h-4 w-4" /> : <>{progressSortType === 'leftAsc' && <ArrowUp className="ml-2 h-4 w-4" />}
-						{progressSortType === 'leftDesc' && <ArrowDown className="ml-2 h-4 w-4" />}
-						{progressSortType === 'progressAsc' && <> (points) <ArrowUp className="ml-2 h-4 w-4" /></>}
-						{progressSortType === 'progressDesc' && <> (points) <ArrowDown className="ml-2 h-4 w-4" /></>}</>}
-
-
+					{!column.getIsSorted() ? <ArrowUpDown className="ml-2 h-4 w-4" /> : <>
+						{mastery_sort === 'level_asc' && <> (level) <ArrowUp className="ml-2 h-4 w-4" /></>}
+						{mastery_sort === 'level_desc' && <> (level) <ArrowDown className="ml-2 h-4 w-4" /></>}
+						{mastery_sort === 'points_asc' && <> (points) <ArrowUp className="ml-2 h-4 w-4" /></>}
+						{mastery_sort === 'points_desc' && <> (points) <ArrowDown className="ml-2 h-4 w-4" /></>}
+					</>}
 				</Button>
 			),
 			sortingFn: (a, b) => {
-				const aValue = a.getValue("progress") as { left: number; progress: number };
-				const bValue = b.getValue("progress") as { left: number; progress: number };
-				if (progressSortType.startsWith('left')) {
-					return aValue.left - bValue.left;
+				const aValue = a.getValue("mastery") as { points: number; level: number };
+				const bValue = b.getValue("mastery") as { points: number; level: number };
+				console.log(mastery_sort);
+				if (mastery_sort.startsWith('level') && aValue.level !== bValue.level) {
+					return aValue.level - bValue.level;
 				} else {
-					return aValue.progress - bValue.progress;
+					return aValue.points - bValue.points;
 				}
 			},
 			cell: ({ row }) => (
 				<div className="flex items-center space-x-2">
-					<span className="text-sm font-medium w-6">{row.original.number}</span>
+					<span className="text-sm font-medium w-6">{row.original.level}</span>
 					<div className="flex-grow">
 						<div className="flex justify-between mb-1">
-							<span className="text-sm font-medium">{row.original.progress} (+{row.original.next_progress > 0 ? row.original.next_progress : "ready to level"})</span>
+							<span className="text-sm font-medium">{row.original.points} (+{row.original.next_progress > 0 ? row.original.next_progress : "ready to level"})</span>
 						</div>
-						<Progress value={row.original.progress / (row.original.progress + row.original.next_progress) * 100} className="w-full h-1" />
+						<Progress value={row.original.points / (row.original.points + row.original.next_progress) * 100} className="w-full h-1" />
 					</div>
 				</div>
 			)
@@ -145,11 +146,11 @@ export default function Champions({ mastery_data, champion_map, lcu_challenge_da
 			)
 		},
 		{
-			accessorKey: "circledLetters",
+			accessorKey: "grades",
 			header: ({ column }) => <SortButton column={column}>Grades</SortButton>,
 			cell: ({ row }) => (
 				<div className="flex space-x-1">
-					{row.original.circledLetters.map((item, index) => (
+					{row.original.grades.map((item, index) => (
 						<div
 							key={index}
 							className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
@@ -194,7 +195,7 @@ export default function Champions({ mastery_data, champion_map, lcu_challenge_da
 				</div>
 			)
 		}))
-	], [progressSortType, lcu_challenge_data]);
+	], [mastery_sort, lcu_challenge_data]);
 
 	const table = useReactTable({
 		data,

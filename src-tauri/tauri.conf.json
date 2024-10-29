@@ -1,7 +1,7 @@
 {
 	"productName": "crystal",
 	"version": "0.1.0",
-	"identifier": "pink.cyan.crystal",
+	"identifier": "lol.challenges.crystal",
 	"build": {
 		"beforeDevCommand": "bun run dev",
 		"devUrl": "http://localhost:1420",
@@ -12,7 +12,7 @@
 		"windows": [
 			{
 				"title": "crystal",
-				"width": 1300,
+				"width": 1400,
 				"height": 725,
 				"decorations": false
 			}

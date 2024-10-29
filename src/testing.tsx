@@ -342,8 +342,7 @@ export default function Dashboard() {
 										/>
 										<label
 											htmlFor={`column-${column.id}`}
-											className="text-sm font-medium leading-none peer-disabled:cursor-not-allowe
-d peer-disabled:opacity-70"
+											className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
 										>
 											{column.id === "progress" ? (
 												"Progress"

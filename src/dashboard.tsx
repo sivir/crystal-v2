@@ -1,5 +1,5 @@
-import { Dispatch, SetStateAction, useState } from 'react';
-import { ChevronRight, CreditCard, Wallet, Banknote, PiggyBank, Coins, Receipt, ShoppingCart, Briefcase, TrendingUp, Gift, Percent, Tag } from "lucide-react";
+import { Dispatch, SetStateAction, useEffect, useState } from 'react';
+import { ChevronRight, CreditCard, Wallet, Banknote, PiggyBank, Coins, Receipt, ShoppingCart, Briefcase, TrendingUp, Gift, Percent, Tag, Check, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -17,9 +17,53 @@ import {
 	DialogTitle,
 	DialogTrigger
 } from "@/components/ui/dialog";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger
+} from "@/components/ui/tooltip";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area.tsx";
 import { LCUChallengeData, RiotChallengeData } from "@/lib/types.ts";
 
 const iconOptions = [
+	{ icon: CreditCard, label: 'Credit Card' },
+	{ icon: Wallet, label: 'Wallet' },
+	{ icon: Banknote, label: 'Banknote' },
+	{ icon: PiggyBank, label: 'Savings' },
+	{ icon: Coins, label: 'Coins' },
+	{ icon: Receipt, label: 'Receipt' },
+	{ icon: ShoppingCart, label: 'Shopping' },
+	{ icon: Briefcase, label: 'Business' },
+	{ icon: TrendingUp, label: 'Trending' },
+	{ icon: Gift, label: 'Gift' },
+	{ icon: Percent, label: 'Discount' },
+	{ icon: Tag, label: 'Tag' },
+	{ icon: CreditCard, label: 'Credit Card' },
+	{ icon: Wallet, label: 'Wallet' },
+	{ icon: Banknote, label: 'Banknote' },
+	{ icon: PiggyBank, label: 'Savings' },
+	{ icon: Coins, label: 'Coins' },
+	{ icon: Receipt, label: 'Receipt' },
+	{ icon: ShoppingCart, label: 'Shopping' },
+	{ icon: Briefcase, label: 'Business' },
+	{ icon: TrendingUp, label: 'Trending' },
+	{ icon: Gift, label: 'Gift' },
+	{ icon: Percent, label: 'Discount' },
+	{ icon: Tag, label: 'Tag' },
+	{ icon: CreditCard, label: 'Credit Card' },
+	{ icon: Wallet, label: 'Wallet' },
+	{ icon: Banknote, label: 'Banknote' },
+	{ icon: PiggyBank, label: 'Savings' },
+	{ icon: Coins, label: 'Coins' },
+	{ icon: Receipt, label: 'Receipt' },
+	{ icon: ShoppingCart, label: 'Shopping' },
+	{ icon: Briefcase, label: 'Business' },
+	{ icon: TrendingUp, label: 'Trending' },
+	{ icon: Gift, label: 'Gift' },
+	{ icon: Percent, label: 'Discount' },
+	{ icon: Tag, label: 'Tag' },
 	{ icon: CreditCard, label: 'Credit Card' },
 	{ icon: Wallet, label: 'Wallet' },
 	{ icon: Banknote, label: 'Banknote' },
@@ -35,8 +79,15 @@ const iconOptions = [
 ];
 
 const level_colors: { [level: string]: string } = {
+	CHALLENGER: "text-cyan-500",
+	GRANDMASTER: "text-red-500",
 	MASTER: "text-purple-500",
-	DIAMOND: "text-blue-500"
+	DIAMOND: "text-blue-500",
+	PLATINUM: "text-blue-300",
+	GOLD: "text-yellow-500",
+	SILVER: "text-gray-500",
+	BRONZE: "text-orange-500",
+	IRON: "text-gray-300"
 };
 
 const CircleProgress = ({ progress, level }: { progress: number, level: string }) => (
@@ -75,6 +126,46 @@ const CircleProgress = ({ progress, level }: { progress: number, level: string }
 	</div>
 );
 
+
+const TickedProgressBar = ({ value, color }: { value: number, color: string }) => {
+	const [tickPositions, setTickPositions] = useState<number[]>([]);
+
+	useEffect(() => {
+		setTickPositions([
+			Math.random() * 100,
+			Math.random() * 100,
+			Math.random() * 100
+		].sort((a, b) => a - b));
+	}, []);
+
+	return (
+		<div className={`space-y-1 h-2`}>
+			<div className="h-2 bg-muted rounded-full overflow-hidden relative">
+				<div className={`h-full ${color} absolute top-0 left-0`} style={{ width: `${value}%` }} />
+				<div className="absolute inset-0 flex items-center">
+					{tickPositions.map((position, index) => (
+						<div key={index} className="h-3 flex items-center" style={{ left: `${position}%`, position: 'absolute' }}>
+							<div className="w-px h-full bg-background"></div>
+						</div>
+					))}
+				</div>
+			</div>
+			<div className="relative h-5">
+				{tickPositions.map((position, index) => (
+					<div key={index} className="absolute" style={{ left: `${position}%`, transform: 'translateX(-50%)' }}>
+						<img
+							src={`https://placehold.co/20?text=${index + 1}`}
+							alt={`Placeholder ${index + 1}`}
+							width={20}
+							height={20}
+						/>
+					</div>
+				))}
+			</div>
+		</div>
+	);
+};
+
 export default function Dashboard(props: { riot_id: string[], riot_challenge_data: RiotChallengeData, lcu_challenge_data: LCUChallengeData, setPage: Dispatch<SetStateAction<string>> }) {
 	const { riot_id, riot_challenge_data, lcu_challenge_data, setPage } = props;
 	const [selectedIcons, setSelectedIcons] = useState([
@@ -84,17 +175,24 @@ export default function Dashboard(props: { riot_id: string[], riot_challenge_dat
 	]);
 	const [openDialogIndex, setOpenDialogIndex] = useState<number | null>(null);
 
+	const [searchTerm, setSearchTerm] = useState("");
+	const filteredIcons = iconOptions.filter(icon =>
+		icon.label.toLowerCase().includes(searchTerm.toLowerCase())
+	);
+
 	const handleIconChange = (index: number, newIcon: typeof iconOptions[0]) => {
 		const newSelectedIcons = [...selectedIcons];
 		newSelectedIcons[index] = newIcon;
 		setSelectedIcons(newSelectedIcons);
 		setOpenDialogIndex(null);
+
+		setSearchTerm("");
 	};
 
 	return (
-		 <div className="flex flex-col">{ Object.keys(lcu_challenge_data).length === 0 ? <></> :
+		<div className="flex flex-col">{Object.keys(lcu_challenge_data).length === 0 ? <></> :
 			<main className="flex-1 p-6 md:p-10">
-				<h2 className="text-2xl font-semibold mb-6 -mt-10 ">Hello, <span className="font-bold bg-gradient-to-r from-blue-600 to-pink-500 inline-block text-transparent bg-clip-text">{riot_id[0]}#{riot_id[1]}</span></h2>
+				<h2 className="text-2xl font-semibold mb-6 -mt-10 ">Hello, <span className="font-bold bg-gradient-to-r from-cyan-400 to-pink-400 inline-block text-transparent bg-clip-text">{riot_id[0]}#{riot_id[1]}</span></h2>
 				<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
 					<Card className="flex flex-col">
 						<CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
@@ -112,35 +210,61 @@ export default function Dashboard(props: { riot_id: string[], riot_challenge_dat
 										<div className="text-3xl ml-1">pts</div>
 									</div>
 									<div className="flex space-x-4">
-										{selectedIcons.map((IconObj, index) => (
-											<Dialog key={index} open={openDialogIndex === index} onOpenChange={(open: any) => setOpenDialogIndex(open ? index : null)}>
-												<DialogTrigger asChild>
-													<Button variant="outline" size="icon" className="h-16 w-16">
-														<IconObj.icon className="h-8 w-8" />
-													</Button>
-												</DialogTrigger>
-												<DialogContent className="sm:max-w-[425px]">
-													<DialogHeader>
-														<DialogTitle>Choose an icon</DialogTitle>
-														<DialogDescription>
-															Select a new icon to represent this category.
-														</DialogDescription>
-													</DialogHeader>
-													<div className="grid grid-cols-4 gap-4 py-4">
-														{iconOptions.map((option, optionIndex) => (
-															<Button
-																key={optionIndex}
-																variant="outline"
-																className="h-12 w-12 p-0"
-																onClick={() => handleIconChange(index, option)}
-															>
-																<option.icon className="h-6 w-6" />
-															</Button>
-														))}
-													</div>
-												</DialogContent>
-											</Dialog>
-										))}
+										<TooltipProvider>
+											{selectedIcons.map((IconObj, index) => (
+												<Tooltip key={index}>
+													<TooltipTrigger asChild>
+														<Dialog open={openDialogIndex === index} onOpenChange={(open) => setOpenDialogIndex(open ? index : null)}>
+															<DialogTrigger asChild>
+																<Button variant="outline" size="icon" className="h-16 w-16">
+																	<IconObj.icon className="h-8 w-8" />
+																</Button>
+															</DialogTrigger>
+															<DialogContent className="sm:max-w-[425px]">
+																<DialogHeader>
+																	<DialogTitle>Choose an icon</DialogTitle>
+																	<DialogDescription>
+																		Select a new icon to represent this category.
+																	</DialogDescription>
+																</DialogHeader>
+																<div className="py-4">
+																	<div className="flex items-center space-x-2 mb-4">
+																		<Search className="w-4 h-4 text-muted-foreground" />
+																		<Input
+																			placeholder="Search icons..."
+																			value={searchTerm}
+																			onChange={(e) => setSearchTerm(e.target.value)}
+																			className="flex-1"
+																		/>
+																	</div>
+																	<ScrollArea className="h-[200px] w-full rounded-md border p-4">
+																		<div className="grid grid-cols-5 gap-4">
+																			{filteredIcons.map((option, optionIndex) => (
+																				<div className="flex justify-center">
+																				<Button
+																					key={optionIndex}
+																					variant="outline"
+																					className="h-12 w-12 p-0"
+																					onClick={() => handleIconChange(index, option)}
+																				>
+																					<option.icon className="h-6 w-6" />
+																				</Button></div>
+																			))}
+																		</div>
+																	</ScrollArea>
+																</div>
+															</DialogContent>
+														</Dialog>
+													</TooltipTrigger>
+													<TooltipContent>
+														<p>{IconObj.label}</p>
+													</TooltipContent>
+												</Tooltip>
+											))}
+										</TooltipProvider>
+										<Button variant="outline" size="icon" className="h-16 w-16">
+											<Check className="h-8 w-8" />
+										</Button>
 									</div>
 								</div>
 								<CircleProgress progress={riot_challenge_data.totalPoints.current / riot_challenge_data.totalPoints.max * 100} level={riot_challenge_data.totalPoints.level} />
@@ -216,21 +340,21 @@ export default function Dashboard(props: { riot_id: string[], riot_challenge_dat
 										<p className="text-sm font-medium leading-none">Mastery 10</p>
 										<p className="text-sm font-medium">{lcu_challenge_data[401107].currentValue}/{lcu_challenge_data[401107].thresholds["MASTER"].value}</p>
 									</div>
-									<Progress value={lcu_challenge_data[401107].currentValue / lcu_challenge_data[401107].thresholds["MASTER"].value * 100} className="h-2 [&>*]:bg-red-500" />
+									<TickedProgressBar value={lcu_challenge_data[401107].currentValue / lcu_challenge_data[401107].thresholds["MASTER"].value * 100} color="bg-red-500" />
 								</div>
 								<div className="space-y-2">
 									<div className="flex items-center justify-between">
 										<p className="text-sm font-medium leading-none">Mastery 7</p>
 										<p className="text-sm font-medium">{lcu_challenge_data[401105].currentValue}/{lcu_challenge_data[401105].thresholds["MASTER"].value}</p>
 									</div>
-									<Progress value={lcu_challenge_data[401105].currentValue / lcu_challenge_data[401105].thresholds["MASTER"].value * 100} className="h-2 [&>*]:bg-indigo-700" />
+									<TickedProgressBar value={lcu_challenge_data[401105].currentValue / lcu_challenge_data[401105].thresholds["MASTER"].value * 100} color="bg-indigo-700" />
 								</div>
 								<div className="space-y-2">
 									<div className="flex items-center justify-between">
 										<p className="text-sm font-medium leading-none">Mastery 5</p>
 										<p className="text-sm font-medium">{lcu_challenge_data[401104].currentValue}/{lcu_challenge_data[401104].thresholds["MASTER"].value}</p>
 									</div>
-									<Progress value={lcu_challenge_data[401104].currentValue / lcu_challenge_data[401104].thresholds["MASTER"].value * 100} className="h-2 [&>*]:bg-blue-400" />
+									<TickedProgressBar value={lcu_challenge_data[401104].currentValue / lcu_challenge_data[401104].thresholds["MASTER"].value * 100} color="bg-blue-400" />
 								</div>
 							</div>
 						</CardContent>
@@ -238,5 +362,5 @@ export default function Dashboard(props: { riot_id: string[], riot_challenge_dat
 				</div>
 			</main>}
 		</div>
-);
+	);
 }
