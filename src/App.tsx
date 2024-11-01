@@ -170,7 +170,7 @@ export default function Layout() {
 				<main className="flex-1 overflow-y-auto p-4">
 					<div style={{ display: page === 'home' ? "" : "none" }}><Dashboard riot_id={riot_id} lcu_challenge_data={lcu_challenge_data} riot_challenge_data={riot_challenge_data} setPage={setPage} /></div>
 					<div style={{ display: page === 'search' ? "" : "none" }}><Profile supabase={supabase} lcu_challenge_data={lcu_challenge_data} /></div>
-					<div style={{ display: page === 'lobby' ? "" : "none" }}><Lobby lobby={lobby} supabase={supabase} lcu_challenge_data={lcu_challenge_data} /></div>
+					<div style={{ display: page === 'lobby' ? "" : "none" }}><Lobby lobby={lobby} supabase={supabase} lcu_challenge_data={lcu_challenge_data} champion_map={champion_map} mastery_data={mastery_data}/></div>
 					<div style={{ display: page === 'champions' ? "" : "none" }}><Champions mastery_data={mastery_data} champion_map={champion_map} lcu_challenge_data={lcu_challenge_data} /></div>
 					<div style={{ display: page === 'eternals' ? "" : "none" }}><Eternals champion_map={champion_map}/></div>
 					<div style={{ display: page === 'globes' ? "" : "none" }}><TeamBuilder champion_map={champion_map} lcu_challenge_data={lcu_challenge_data} /></div>

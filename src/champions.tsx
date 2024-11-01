@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { ArrowDown, ArrowUp, ArrowUpDown, Check, X } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, Check, RefreshCw, Search, X } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -9,6 +9,7 @@ import { ChampionSummaryItem, LCUChallengeData, MasteryData } from "@/lib/types.
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip.tsx";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card.tsx";
 import { format_number, format_number_comma, rank_index, rank_order } from "@/lib/utils.ts";
+import { Input } from "@/components/ui/input.tsx";
 
 type RowData = {
 	id: number;
@@ -44,10 +45,10 @@ export default function Champions({ mastery_data, champion_map, lcu_challenge_da
 	const classes = ["Assassin", "Fighter", "Mage", "Marksman", "Support", "Tank"];
 	const mastery_class_challenges_7 = [401201, 401202, 401203, 401204, 401205, 401206];
 	const mastery_class_challenges_10 = [401207, 401208, 401209, 401210, 401211, 401212];
-
+	const [search_filter, setSearchFilter] = useState("");
 	const [data, setData] = useState<RowData[]>([]);
 
-	useEffect(() => {
+	function refresh_data() {
 		setData(Object.entries(champion_map).map(([key, value]) => {
 			const current_champion_mastery = mastery_data.find((mastery) => mastery.championId === parseInt(key)) || default_mastery_data;
 			const grades = Object.entries(current_champion_mastery.nextSeasonMilestone.requireGradeCounts).flatMap(([key, value]) => Array(value).fill(key));
@@ -63,6 +64,10 @@ export default function Champions({ mastery_data, champion_map, lcu_challenge_da
 				checks: tracked_challenges.map(x => lcu_challenge_data[x].completedIds.includes(parseInt(key)))
 			};
 		}));
+	}
+
+	useEffect(() => {
+		refresh_data();
 	}, [mastery_data]);
 
 	const SortButton = ({ column, children }: { column: any; children: React.ReactNode }) => {
@@ -289,29 +294,46 @@ export default function Champions({ mastery_data, champion_map, lcu_challenge_da
 				</Card>
 			</div>
 			<div className="mb-4">
-				<h2 className="text-lg font-semibold mb-2">Show/Hide Columns</h2>
-				<div className="flex flex-wrap gap-4">
-					{table.getAllLeafColumns().map(column => {
-						if (isNaN(parseInt(column.id))) {
-							return null;
-						}
-						return (
-							<div key={column.id} className="flex items-center space-x-2">
-								<Checkbox
-									id={`column-${column.id}`}
-									checked={column.getIsVisible()}
-									onCheckedChange={() => column.toggleVisibility()}
-								/>
-								<label
-									htmlFor={`column-${column.id}`}
-									className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-								>
-									{lcu_challenge_data[parseInt(column.id)]?.name || "loading"}
-								</label>
-							</div>
-						);
-					})}
+				<div className="flex">
+					<div>
+						<h2 className="text-lg font-semibold mb-2">Show/Hide Columns</h2>
+						<div className="flex flex-wrap gap-4">
+							{table.getAllLeafColumns().map(column => {
+								if (isNaN(parseInt(column.id))) {
+									return null;
+								}
+								return (
+									<div key={column.id} className="flex items-center space-x-2">
+										<Checkbox
+											id={`column-${column.id}`}
+											checked={column.getIsVisible()}
+											onCheckedChange={() => column.toggleVisibility()}
+										/>
+										<label
+											htmlFor={`column-${column.id}`}
+											className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+										>
+											{lcu_challenge_data[parseInt(column.id)]?.name || "loading"}
+										</label>
+									</div>
+								);
+							})}
+						</div>
+					</div>
+					<div className="flex items-center space-x-2">
+						<Search className="h-4 w-4 text-muted-foreground" />
+						<Input
+							placeholder="Search names..."
+							value={search_filter ?? ''}
+							onChange={(event) => setSearchFilter(event.target.value)}
+							className="max-w-sm"
+						/>
+						<Button onClick={refresh_data} variant="outline" size="icon" className="h-8 w-8">
+							<RefreshCw className="h-4 w-4" />
+						</Button>
+					</div>
 				</div>
+
 			</div>
 			{lcu_challenge_data ?
 				<div className="rounded-md border">

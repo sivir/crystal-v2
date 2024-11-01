@@ -70,7 +70,7 @@ export type SummonerData = {
 export type ChampionSummaryItem = {
 	id: number;
 	name: string;
-	//iconPath: string;
+	squarePortraitPath: string;
 	roles: string[];
 };
 
