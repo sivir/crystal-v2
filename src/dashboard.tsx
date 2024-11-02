@@ -1,5 +1,5 @@
-import { Dispatch, SetStateAction, useEffect, useState } from 'react';
-import { ChevronRight, CreditCard, Wallet, Banknote, PiggyBank, Coins, Receipt, ShoppingCart, Briefcase, TrendingUp, Gift, Percent, Tag, Check, Search } from "lucide-react";
+import { Dispatch, SetStateAction, useEffect, useMemo, useState } from 'react';
+import { ChevronRight, Check, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -25,58 +25,8 @@ import {
 } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area.tsx";
-import { LCUChallengeData, RiotChallengeData } from "@/lib/types.ts";
-
-const iconOptions = [
-	{ icon: CreditCard, label: 'Credit Card' },
-	{ icon: Wallet, label: 'Wallet' },
-	{ icon: Banknote, label: 'Banknote' },
-	{ icon: PiggyBank, label: 'Savings' },
-	{ icon: Coins, label: 'Coins' },
-	{ icon: Receipt, label: 'Receipt' },
-	{ icon: ShoppingCart, label: 'Shopping' },
-	{ icon: Briefcase, label: 'Business' },
-	{ icon: TrendingUp, label: 'Trending' },
-	{ icon: Gift, label: 'Gift' },
-	{ icon: Percent, label: 'Discount' },
-	{ icon: Tag, label: 'Tag' },
-	{ icon: CreditCard, label: 'Credit Card' },
-	{ icon: Wallet, label: 'Wallet' },
-	{ icon: Banknote, label: 'Banknote' },
-	{ icon: PiggyBank, label: 'Savings' },
-	{ icon: Coins, label: 'Coins' },
-	{ icon: Receipt, label: 'Receipt' },
-	{ icon: ShoppingCart, label: 'Shopping' },
-	{ icon: Briefcase, label: 'Business' },
-	{ icon: TrendingUp, label: 'Trending' },
-	{ icon: Gift, label: 'Gift' },
-	{ icon: Percent, label: 'Discount' },
-	{ icon: Tag, label: 'Tag' },
-	{ icon: CreditCard, label: 'Credit Card' },
-	{ icon: Wallet, label: 'Wallet' },
-	{ icon: Banknote, label: 'Banknote' },
-	{ icon: PiggyBank, label: 'Savings' },
-	{ icon: Coins, label: 'Coins' },
-	{ icon: Receipt, label: 'Receipt' },
-	{ icon: ShoppingCart, label: 'Shopping' },
-	{ icon: Briefcase, label: 'Business' },
-	{ icon: TrendingUp, label: 'Trending' },
-	{ icon: Gift, label: 'Gift' },
-	{ icon: Percent, label: 'Discount' },
-	{ icon: Tag, label: 'Tag' },
-	{ icon: CreditCard, label: 'Credit Card' },
-	{ icon: Wallet, label: 'Wallet' },
-	{ icon: Banknote, label: 'Banknote' },
-	{ icon: PiggyBank, label: 'Savings' },
-	{ icon: Coins, label: 'Coins' },
-	{ icon: Receipt, label: 'Receipt' },
-	{ icon: ShoppingCart, label: 'Shopping' },
-	{ icon: Briefcase, label: 'Business' },
-	{ icon: TrendingUp, label: 'Trending' },
-	{ icon: Gift, label: 'Gift' },
-	{ icon: Percent, label: 'Discount' },
-	{ icon: Tag, label: 'Tag' }
-];
+import { ChallengeSummary, LCUChallengeData, RiotChallengeData } from "@/lib/types.ts";
+import { challenge_icon } from "@/lib/utils.ts";
 
 const level_colors: { [level: string]: string } = {
 	CHALLENGER: "text-cyan-500",
@@ -166,28 +116,29 @@ const TickedProgressBar = ({ value, color }: { value: number, color: string }) =
 	);
 };
 
-export default function Dashboard(props: { riot_id: string[], riot_challenge_data: RiotChallengeData, lcu_challenge_data: LCUChallengeData, setPage: Dispatch<SetStateAction<string>> }) {
-	const { riot_id, riot_challenge_data, lcu_challenge_data, setPage } = props;
-	const [selectedIcons, setSelectedIcons] = useState([
-		iconOptions[0],
-		iconOptions[1],
-		iconOptions[2]
-	]);
+export default function Dashboard(props: { riot_id: string[], riot_challenge_data: RiotChallengeData, lcu_challenge_data: LCUChallengeData, setPage: Dispatch<SetStateAction<string>>, challenge_summary: ChallengeSummary }) {
+	const { riot_id, riot_challenge_data, lcu_challenge_data, setPage, challenge_summary } = props;
+	const [selected_icons, ss] = useState([0, 0, 0]);
 	const [openDialogIndex, setOpenDialogIndex] = useState<number | null>(null);
 
 	const [searchTerm, setSearchTerm] = useState("");
-	const filteredIcons = iconOptions.filter(icon =>
-		icon.label.toLowerCase().includes(searchTerm.toLowerCase())
-	);
+	const filtered_icons = useMemo(() => {
+		return Object.entries(challenge_summary.challenges).filter(([_, challenge]) => challenge.name.toLowerCase().includes(searchTerm.toLowerCase()) || challenge.description.toLowerCase().includes(searchTerm.toLowerCase())).map(([id, _]) => parseInt(id));
+	}, [challenge_summary.challenges]);
 
-	const handleIconChange = (index: number, newIcon: typeof iconOptions[0]) => {
-		const newSelectedIcons = [...selectedIcons];
-		newSelectedIcons[index] = newIcon;
-		setSelectedIcons(newSelectedIcons);
+	function handle_icon_change(index: number, new_icon: number) {
+		const new_selected_icons = selected_icons;
+		new_selected_icons[index] = new_icon;
+		ss(new_selected_icons);
 		setOpenDialogIndex(null);
-
 		setSearchTerm("");
-	};
+	}
+
+	useEffect(() => {
+		if (riot_challenge_data && riot_challenge_data.playerPreferences) {
+			ss(riot_challenge_data.playerPreferences.challengeIds);
+		}
+	}, [riot_challenge_data]);
 
 	return (
 		<div className="flex flex-col">{Object.keys(lcu_challenge_data).length === 0 ? <></> :
@@ -211,27 +162,27 @@ export default function Dashboard(props: { riot_id: string[], riot_challenge_dat
 									</div>
 									<div className="flex space-x-4">
 										<TooltipProvider>
-											{selectedIcons.map((IconObj, index) => (
+											{selected_icons.map((IconObj, index) => (
 												<Tooltip key={index}>
 													<TooltipTrigger asChild>
 														<Dialog open={openDialogIndex === index} onOpenChange={(open) => setOpenDialogIndex(open ? index : null)}>
 															<DialogTrigger asChild>
 																<Button variant="outline" size="icon" className="h-16 w-16">
-																	<IconObj.icon className="h-8 w-8" />
+																	<img alt="icon" src={challenge_icon(lcu_challenge_data, IconObj)} className="h-8 w-8" />
 																</Button>
 															</DialogTrigger>
 															<DialogContent className="sm:max-w-[425px]">
 																<DialogHeader>
-																	<DialogTitle>Choose an icon</DialogTitle>
+																	<DialogTitle>Choose a token</DialogTitle>
 																	<DialogDescription>
-																		Select a new icon to represent this category.
+																		Select a new challenge token.
 																	</DialogDescription>
 																</DialogHeader>
-																<div className="py-4">
+																<div>
 																	<div className="flex items-center space-x-2 mb-4">
 																		<Search className="w-4 h-4 text-muted-foreground" />
 																		<Input
-																			placeholder="Search icons..."
+																			placeholder="Search tokens..."
 																			value={searchTerm}
 																			onChange={(e) => setSearchTerm(e.target.value)}
 																			className="flex-1"
@@ -239,15 +190,15 @@ export default function Dashboard(props: { riot_id: string[], riot_challenge_dat
 																	</div>
 																	<ScrollArea className="h-[200px] w-full rounded-md border p-4">
 																		<div className="grid grid-cols-5 gap-4">
-																			{filteredIcons.map((option, optionIndex) => (
+																			{filtered_icons.map((option, optionIndex) => (
 																				<div className="flex justify-center">
 																				<Button
 																					key={optionIndex}
 																					variant="outline"
 																					className="h-12 w-12 p-0"
-																					onClick={() => handleIconChange(index, option)}
+																					onClick={() => handle_icon_change(index, option)}
 																				>
-																					<option.icon className="h-6 w-6" />
+																					<img src={challenge_icon(lcu_challenge_data, option)} alt="icon" className="h-6 w-6" />
 																				</Button></div>
 																			))}
 																		</div>
@@ -257,7 +208,7 @@ export default function Dashboard(props: { riot_id: string[], riot_challenge_dat
 														</Dialog>
 													</TooltipTrigger>
 													<TooltipContent>
-														<p>{IconObj.label}</p>
+														<p>{challenge_summary.challenges[IconObj].name}</p>
 													</TooltipContent>
 												</Tooltip>
 											))}

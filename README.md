@@ -24,3 +24,5 @@ special thanks to sylv for help with [irelia](https://github.com/AlsoSylv/irelia
 - [x] potential issue if people have eternals finished on legacy eternals
 - [x] eternals per champion role
 - [ ] add eternals summary to top of eternals page
+- [ ] improve comparison
+- [ ] skin challenge tracker

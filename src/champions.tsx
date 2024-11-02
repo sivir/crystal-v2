@@ -8,7 +8,7 @@ import { Column, ColumnDef, flexRender, getCoreRowModel, getSortedRowModel, Row,
 import { ChampionSummaryItem, LCUChallengeData, MasteryData } from "@/lib/types.ts";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip.tsx";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card.tsx";
-import { format_number, format_number_comma, rank_index, rank_order } from "@/lib/utils.ts";
+import { challenge_icon, format_number, format_number_comma, rank_index, rank_order } from "@/lib/utils.ts";
 import { Input } from "@/components/ui/input.tsx";
 
 type RowData = {
@@ -120,7 +120,6 @@ export default function Champions({ mastery_data, champion_map, lcu_challenge_da
 			sortingFn: (a, b) => {
 				const aValue = a.getValue("mastery") as { points: number; level: number };
 				const bValue = b.getValue("mastery") as { points: number; level: number };
-				console.log(mastery_sort);
 				if (mastery_sort.startsWith('level') && aValue.level !== bValue.level) {
 					return aValue.level - bValue.level;
 				} else {
@@ -178,9 +177,7 @@ export default function Champions({ mastery_data, champion_map, lcu_challenge_da
 					<Tooltip>
 						<TooltipTrigger>
 							<SortButton column={tableColumn}>
-								<img
-									src={`https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/challenges/` + lcu_challenge_data[column]?.levelToIconPath[lcu_challenge_data[column].currentLevel].substring(40).toLowerCase() || ""}
-									alt="icon" className="w-6 h-6" />
+								<img src={challenge_icon(lcu_challenge_data, column)} alt="icon" className="w-6 h-6" />
 							</SortButton>
 						</TooltipTrigger>
 						<TooltipContent>

@@ -11,7 +11,7 @@ import Dashboard from "@/dashboard.tsx";
 import Champions from "@/champions.tsx";
 import Testing from "@/testing.tsx";
 import { invoke } from "@tauri-apps/api/core";
-import { ChampionSummary, ChampionSummaryItem, default_riot_challenge_data, LCUChallengeData, MasteryData, RiotChallengeData, SummonerData } from "@/lib/types.ts";
+import { ChallengeSummary, ChampionSummary, ChampionSummaryItem, default_riot_challenge_data, LCUChallengeData, MasteryData, RiotChallengeData, SummonerData } from "@/lib/types.ts";
 import TeamBuilder from "@/team_builder.tsx";
 import Lobby from "@/lobby.tsx";
 import Profile from "@/search.tsx";
@@ -30,6 +30,7 @@ export default function Layout() {
 	const [riot_challenge_data, setRiotChallengeData] = useState<RiotChallengeData>(default_riot_challenge_data);
 	const [mastery_data, setMasteryData] = useState<MasteryData>([]);
 	const [champion_map, setChampionMap] = useState<{[id: number]: ChampionSummaryItem}>({});
+	const [challenge_summary, setChallengeSummary] = useState<ChallengeSummary>({challenges: {}});
 	const [gameflow_phase, setGameflowPhase] = useState<string>("");
 	const [riot_id, setRiotId] = useState<string[]>([]);
 
@@ -88,6 +89,10 @@ export default function Layout() {
 
 		invoke("http_request", { url: "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-summary.json" }).then(x => {
 			setChampionMap(Object.fromEntries(Object.entries(x as ChampionSummary).filter(y => y[1].id > 0 && y[1].id < 3000).map(([, value]) => [value.id, value])));
+		});
+
+		invoke("http_request", { url: "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/challenges.json" }).then(x => {
+			setChallengeSummary(x as ChallengeSummary);
 		});
 
 		return () => {
@@ -168,7 +173,7 @@ export default function Layout() {
 			<div className="flex-1 ml-64 flex flex-col h-screen">
 				<div className="h-16 flex flex-col justify-between px-4" data-tauri-drag-region="true" />
 				<main className="flex-1 overflow-y-auto p-4">
-					<div style={{ display: page === 'home' ? "" : "none" }}><Dashboard riot_id={riot_id} lcu_challenge_data={lcu_challenge_data} riot_challenge_data={riot_challenge_data} setPage={setPage} /></div>
+					<div style={{ display: page === 'home' ? "" : "none" }}><Dashboard riot_id={riot_id} lcu_challenge_data={lcu_challenge_data} riot_challenge_data={riot_challenge_data} setPage={setPage} challenge_summary={challenge_summary}/></div>
 					<div style={{ display: page === 'search' ? "" : "none" }}><Profile supabase={supabase} lcu_challenge_data={lcu_challenge_data} /></div>
 					<div style={{ display: page === 'lobby' ? "" : "none" }}><Lobby lobby={lobby} supabase={supabase} lcu_challenge_data={lcu_challenge_data} champion_map={champion_map} mastery_data={mastery_data}/></div>
 					<div style={{ display: page === 'champions' ? "" : "none" }}><Champions mastery_data={mastery_data} champion_map={champion_map} lcu_challenge_data={lcu_challenge_data} /></div>

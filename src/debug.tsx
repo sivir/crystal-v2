@@ -14,7 +14,7 @@ export default function Debug({ lobby, gameflow_phase, champion_map, riot_challe
 			<div className="flex items-center gap-4">
 				<Button onClick={() => invoke("lcu_help").then(x => console.log(x))}>LCU Help</Button>
 				<Button onClick={() => {
-					invoke("lcu_post_request", { url: "/lol-challenges/v1/update-player-preferences", body: { ...riot_challenge_data.playerPreferences, "challengeIds": [0, 1, 0] } }).then(x => console.log(x));
+					invoke("lcu_post_request", { url: "/lol-challenges/v1/update-player-preferences", body: { ...riot_challenge_data.playerPreferences, "challengeIds": [0, 303204, 0] } }).then(x => console.log(x));
 				}}>set buttons</Button>
 				<Button onClick={() => {
 					console.log(champion_map);

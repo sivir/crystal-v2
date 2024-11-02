@@ -6,6 +6,7 @@ export type LCUChallengeData = {
 		currentLevel: string;
 		currentValue: number;
 		description: string;
+		id: number;
 		levelToIconPath: {
 			[level: string]: string;
 		}
@@ -18,6 +19,18 @@ export type LCUChallengeData = {
 	}
 };
 
+export type ChallengeSummary = {
+	challenges: {
+		[id: number]: {
+			name: string;
+			description: string;
+			levelToIconPath: {
+				[level: string]: string;
+			}
+		}
+	}
+};
+
 export type RiotChallengeData = {
 	totalPoints: {
 		current: number;
@@ -26,7 +39,7 @@ export type RiotChallengeData = {
 		position: number;
 	},
 	playerPreferences: {
-
+		challengeIds: number[];
 	},
 	challenges: {
 		challengeId: number;
@@ -42,7 +55,9 @@ export const default_riot_challenge_data: RiotChallengeData = {
 		max: 0,
 		position: 0
 	},
-	playerPreferences: {},
+	playerPreferences: {
+		challengeIds: []
+	},
 	challenges: []
 };
 
