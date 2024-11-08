@@ -27,6 +27,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area.tsx";
 import { ChallengeSummary, LCUChallengeData, RiotChallengeData } from "@/lib/types.ts";
 import { challenge_icon } from "@/lib/utils.ts";
+import { invoke } from "@tauri-apps/api/core";
 
 const level_colors: { [level: string]: string } = {
 	CHALLENGER: "text-cyan-500",
@@ -135,8 +136,8 @@ export default function Dashboard(props: { riot_id: string[], riot_challenge_dat
 	}
 
 	useEffect(() => {
-		if (riot_challenge_data && riot_challenge_data.playerPreferences) {
-			ss(riot_challenge_data.playerPreferences.challengeIds);
+		if (riot_challenge_data && riot_challenge_data.preferences) {
+			ss(riot_challenge_data.preferences.challengeIds);
 		}
 	}, [riot_challenge_data]);
 
@@ -213,7 +214,7 @@ export default function Dashboard(props: { riot_id: string[], riot_challenge_dat
 												</Tooltip>
 											))}
 										</TooltipProvider>
-										<Button variant="outline" size="icon" className="h-16 w-16">
+										<Button variant="outline" size="icon" className="h-16 w-16" onClick={() => invoke("lcu_post_request", { url: "/lol-challenges/v1/update-player-preferences", body: { ...riot_challenge_data.preferences, "challengeIds": selected_icons } }).then(x => console.log(x))}>
 											<Check className="h-8 w-8" />
 										</Button>
 									</div>

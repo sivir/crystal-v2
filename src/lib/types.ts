@@ -38,7 +38,7 @@ export type RiotChallengeData = {
 		max: number;
 		position: number;
 	},
-	playerPreferences: {
+	preferences: {
 		challengeIds: number[];
 	},
 	challenges: {
@@ -55,7 +55,7 @@ export const default_riot_challenge_data: RiotChallengeData = {
 		max: 0,
 		position: 0
 	},
-	playerPreferences: {
+	preferences: {
 		challengeIds: []
 	},
 	challenges: []

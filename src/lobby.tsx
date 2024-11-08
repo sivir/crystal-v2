@@ -22,7 +22,7 @@ type LobbyChallenge = {
 type ChampSelect = {
 	myTeam: {
 		championId: number;
-		id: number;
+		cellId: number;
 	}[];
 	benchChampions: {
 		championId: number;
@@ -46,7 +46,8 @@ export default function Lobby({ lobby, supabase, lcu_challenge_data, champion_ma
 			return;
 		}
 		if (champ_select.cell_id > 0) {
-			invoke("lcu_post_request", {url: `/lol-champ-select/v1/session/trades/${champ_select.cell_id}`, body: ""}).then(console.log);
+			console.log(champ_select);
+			invoke("lcu_post_request", {url: `/lol-champ-select/v1/session/trades/${champ_select.cell_id}/request`, body: ""}).then(console.log);
 		} else {
 			invoke("lcu_post_request", {url: `/lol-champ-select/v1/session/bench/swap/${champ_select.champion_id}`, body: ""}).then(console.log);
 		}
@@ -116,14 +117,18 @@ export default function Lobby({ lobby, supabase, lcu_challenge_data, champion_ma
 				</div>
 			</Card>
 			<Button onClick={() => {
-				invoke("lcu_get_request", { url: "/lol-champ-select/v1/session" }).then(data => {
-					const champ_select = data as ChampSelect;
-					const my_team = champ_select.myTeam;
-					const bench = champ_select.benchChampions;
-					setAramChampSelect(my_team.map(selection => {return {champion_id: selection.championId, cell_id: selection.id}}).concat(bench.map(selection => {return {champion_id: selection.championId, cell_id: -1}})));
+				invoke("lcu_get_request", { url: "/lol-champ-select/v1/session" }).then(champ_select_data => {
+					invoke("lcu_get_request", { url: "/lol-champ-select/v1/session/trades" }).then(trade_data => {
+						const champ_select = champ_select_data as ChampSelect;
+						const trades = trade_data as {cellId: number, id: number}[];
+						const my_team = champ_select.myTeam;
+						const bench = champ_select.benchChampions;
+						console.log("asdf", my_team, bench);
+						setAramChampSelect(my_team.map(selection => {return {champion_id: selection.championId, cell_id: trades.find(x => x.cellId === selection.cellId)?.id ?? -1}}).concat(bench.map(selection => {return {champion_id: selection.championId, cell_id: -1}})));
+					});
 				});
 			}}>get champ select data</Button>
-			<div className="border rounded-lg overflow-hidden">
+			<div className="border rounded-lg overflow-hidden">sd
 				<div className="max-h-[600px] overflow-auto">
 					<table>
 						<thead className="bg-gray-100 sticky top-0">
