@@ -82,11 +82,26 @@ export type SummonerData = {
 	tagLine: string;
 };
 
+export type SkinMap = {
+	[id: number]: {
+		id: number;
+		name: string;
+		uncenteredSplashPath: string;
+		tilePath: string;
+		rarity: string;
+		isLegacy: boolean;
+	}
+}
+
 export type ChampionSummaryItem = {
 	id: number;
 	name: string;
 	squarePortraitPath: string;
 	roles: string[];
 };
+
+export type ChampionMap = {
+	[id: number]: ChampionSummaryItem;
+}
 
 export type ChampionSummary = ChampionSummaryItem[];

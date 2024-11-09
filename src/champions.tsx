@@ -5,7 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Column, ColumnDef, flexRender, getCoreRowModel, getSortedRowModel, Row, SortingState, useReactTable } from "@tanstack/react-table";
-import { ChampionSummaryItem, LCUChallengeData, MasteryData } from "@/lib/types.ts";
+import { ChampionMap, LCUChallengeData, MasteryData } from "@/lib/types.ts";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip.tsx";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card.tsx";
 import { challenge_icon, format_number, format_number_comma, rank_index, rank_order } from "@/lib/utils.ts";
@@ -37,7 +37,7 @@ const default_mastery_data = {
 	tokensEarned: 0
 };
 
-export default function Champions({ mastery_data, champion_map, lcu_challenge_data }: { mastery_data: MasteryData, champion_map: { [_: number]: ChampionSummaryItem }, lcu_challenge_data: LCUChallengeData }) {
+export default function Champions({ mastery_data, champion_map, lcu_challenge_data }: { mastery_data: MasteryData, champion_map: ChampionMap, lcu_challenge_data: LCUChallengeData }) {
 	const tracked_challenges = [101301, 120002, 202303, 210001, 210002, 401106, 505001];
 	const [sorting, setSorting] = useState<SortingState>([{id: "mastery", desc: true}]);
 	const [mastery_sort, setMasterySort] = useState<'level_asc' | 'level_desc' | 'points_asc' | 'points_desc'>('level_asc');
