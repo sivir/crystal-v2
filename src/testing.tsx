@@ -15,7 +15,7 @@ type InventoryItem = {
 }
 
 const inventoryData: InventoryItem[] = [
-	{ id: 1, name: "Sword", owned: 2, inLoot: 1, notOwned: 7, description: "A sharp blade for close combat" },
+	{ id: 1, name: "Sword", owned: 2, inLoot: 1, notOwned: 7, description: "A sharper blade for close combat" },
 	{ id: 2, name: "Shield", owned: 3, inLoot: 0, notOwned: 7, description: "Protective gear to block attacks" },
 	{ id: 3, name: "Potion", owned: 5, inLoot: 2, notOwned: 3, description: "Magical elixir for healing" },
 	{ id: 4, name: "Armor", owned: 1, inLoot: 3, notOwned: 6, description: "Heavy-duty protection for your body" },
